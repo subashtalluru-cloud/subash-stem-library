@@ -1,1 +1,628 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Test Chapter | Interactive Statistics & Machine Learning</title><link rel="stylesheet" href="/styles.css"></head><body><header class="site-header"><a class="brand" href="/"><span class="brand-mark">III</span><span><strong>Intuitive · Interactive · Intelligent</strong><small>Subash STEM Library</small></span></a><nav><a href="/">Library</a><a href="/interactive/">Interactive Lab</a></nav></header><main class="section"><p class="eyebrow">TEST CHAPTER</p><h1 style="font-size:clamp(48px,7vw,82px);line-height:1">Seeing variation</h1><p class="lead">A prototype chapter showing how narrative explanation and interaction can work together.</p><div class="book-card" style="margin-top:45px"><div><span class="tag">CONCEPT</span><h3>Statistics is about variation</h3><p>Numbers become meaningful when we understand how they vary. Move the control and observe an illustrative sampling experiment.</p></div><div style="display:flex;align-items:center;justify-content:center;min-height:230px;border:1px solid var(--line);border-radius:16px;background:#fafbfe;padding:25px"><div style="width:100%"><label for="n"><strong>Sample size: <output id="out">20</output></strong></label><input id="n" type="range" min="2" max="100" value="20" style="width:100%;margin:24px 0"><div id="bars" style="font-family:monospace;font-size:13px"></div></div></div></div><p style="margin-top:30px"><a class="text-link" href="/interactive/">→ Open the standalone Interactive Learning Lab</a></p></main><script>const n=document.querySelector('#n'),out=document.querySelector('#out'),bars=document.querySelector('#bars');function draw(){const x=+n.value;out.textContent=x;let vals=[];for(let i=0;i<10;i++)vals.push(Math.max(1,Math.round((Math.random()*2-1)*25+50)));const mean=vals.reduce((a,b)=>a+b,0)/vals.length;bars.innerHTML='Illustrative observed values: '+vals.join(' · ')+'<br><br>Illustrative mean: <b>'+mean.toFixed(1)+'</b><br>Repeated samples generally become more stable as sample size increases.'}n.addEventListener('input',draw);draw();</script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Part VI — Regression: Finding the Invisible String</title>
+<meta name="description" content="Temporary rendering version of Part VI — Regression: Finding the Invisible String.">
+<style>
+:root{
+  --paper:#faf7f0;
+  --paper-2:#f3efe4;
+  --ink:#202522;
+  --muted:#65706a;
+  --accent:#2b6e5e;
+  --accent-2:#b54834;
+  --gold:#c9a24b;
+  --rule:#d8d0bf;
+  --white:#fff;
+  --max:980px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  line-height:1.72;
+}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:var(--max);margin:auto;padding:0 24px}
+.topbar{
+  position:sticky;top:0;z-index:20;
+  background:rgba(250,247,240,.94);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--rule);
+}
+.topbar-inner{
+  max-width:var(--max);margin:auto;padding:12px 24px;
+  display:flex;justify-content:space-between;gap:20px;align-items:center;
+}
+.brand{font-weight:700;font-size:.9rem;letter-spacing:.03em}
+.badge{
+  font-size:.72rem;padding:4px 9px;border:1px solid var(--gold);
+  border-radius:999px;color:#6c571c;background:#fffaf0;
+}
+.hero{padding:72px 0 56px;border-bottom:1px solid var(--rule)}
+.kicker{
+  color:var(--accent);font-size:.82rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:.14em;
+}
+h1,h2,h3{font-family:Georgia,"Times New Roman",serif;line-height:1.18}
+h1{font-size:clamp(2.5rem,6vw,4.8rem);margin:12px 0 18px;max-width:850px}
+.hero .subtitle{
+  font-family:Georgia,"Times New Roman",serif;font-style:italic;
+  font-size:1.2rem;color:var(--muted);max-width:760px;
+}
+.meta{display:flex;gap:18px;flex-wrap:wrap;margin-top:24px;color:var(--muted);font-size:.86rem}
+.layout{display:grid;grid-template-columns:220px 1fr;gap:42px;padding:42px 0}
+.toc{position:sticky;top:70px;height:max-content;font-size:.83rem}
+.toc strong{display:block;margin-bottom:10px}
+.toc a{display:block;padding:5px 0;color:var(--muted)}
+main{min-width:0}
+section{margin:0 0 58px}
+h2{font-size:2rem;margin:0 0 18px;padding-top:18px}
+h3{font-size:1.35rem;margin:34px 0 10px}
+p{margin:0 0 16px}
+.lede{font-size:1.08rem}
+.math{
+  margin:28px 0;padding:22px 24px;background:#edf5f2;
+  border-left:4px solid var(--accent);border-radius:8px;
+}
+.math .label,.callout .label{
+  font-size:.73rem;font-weight:800;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--accent);margin-bottom:8px;
+}
+.equation{
+  font-family:"SFMono-Regular",Consolas,monospace;
+  font-size:1.05rem;text-align:center;margin:12px 0;
+  overflow:auto;padding:8px;
+}
+.callout{
+  margin:28px 0;padding:20px 22px;background:var(--white);
+  border:1px solid var(--rule);border-radius:10px;
+}
+.callout.warning{border-left:4px solid var(--accent-2)}
+.callout.warning .label{color:var(--accent-2)}
+.figure{
+  margin:28px 0;border:1px solid var(--rule);border-radius:10px;
+  background:#fff;padding:12px;
+}
+.figure .placeholder{
+  min-height:150px;display:grid;place-items:center;
+  background:var(--paper-2);border-radius:7px;
+  color:var(--muted);text-align:center;padding:30px;
+}
+.caption{font-size:.78rem;color:var(--muted);margin:10px 4px 2px}
+.interactive{
+  margin:32px 0;border:2px solid var(--accent);
+  border-radius:12px;background:#fff;overflow:hidden;
+}
+.interactive-head{padding:18px 20px;background:#edf5f2}
+.interactive-head h3{margin:0 0 4px}
+.interactive-head p{margin:0;color:var(--muted);font-size:.9rem}
+.interactive iframe{display:block;width:100%;height:620px;border:0;background:#fff}
+.interactive .fallback{padding:18px 20px;font-size:.9rem}
+.grid{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:22px 0;
+}
+.card{
+  background:#fff;border:1px solid var(--rule);border-radius:10px;padding:18px;
+}
+.card h3{margin:0 0 8px;font-size:1.08rem}
+.card p{font-size:.9rem;color:var(--muted);margin:0}
+.practice{
+  background:#fff;border:1px solid var(--rule);border-radius:12px;
+  padding:24px;
+}
+.practice ol{padding-left:24px}
+.practice li{margin:10px 0}
+.footer{
+  border-top:1px solid var(--rule);padding:38px 0 70px;
+  color:var(--muted);font-size:.85rem;
+}
+.next{
+  display:flex;justify-content:space-between;gap:20px;
+  border-top:1px solid var(--rule);padding-top:24px;margin-top:50px;
+}
+@media(max-width:760px){
+  .layout{display:block}
+  .toc{position:static;margin-bottom:32px;padding-bottom:18px;border-bottom:1px solid var(--rule)}
+  .grid{grid-template-columns:1fr}
+  .interactive iframe{height:700px}
+  .hero{padding-top:48px}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">INTERACTIVE STATISTICS &amp; MACHINE LEARNING</div>
+    <div class="badge">TEMPORARY RENDERING VERSION</div>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker">Part VI · Regression</div>
+    <h1>Finding the Invisible String</h1>
+    <p class="subtitle">The string nobody can see, but everyone can feel.</p>
+    <div class="meta">
+      <span>Temporary web chapter for rendering tests</span>
+      <span>Based on the uploaded book PDF, Part VI</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap layout">
+  <aside class="toc">
+    <strong>In this chapter</strong>
+    <a href="#string">The invisible string</a>
+    <a href="#least-squares">Least squares</a>
+    <a href="#causation">The warning label</a>
+    <a href="#rsquared">How good is “good”?</a>
+    <a href="#regression-name">Why “regression”?</a>
+    <a href="#logistic">Logistic regression</a>
+    <a href="#correlation">Pearson correlation</a>
+    <a href="#multiple">Multiple regression</a>
+    <a href="#glm">The GLM idea</a>
+    <a href="#anscombe">Anscombe’s Quartet</a>
+    <a href="#practice">Practice module</a>
+  </aside>
+
+  <main>
+
+    <section id="string">
+      <h2>The string nobody can see, but everyone can feel</h2>
+      <p class="lede">
+        A cricket coach has years of data on his bowlers: hours of practice per week,
+        and average bowling speed. Plotted as a scatter plot, the dots trend upward —
+        more practice, generally, though not perfectly, goes with higher speed.
+        He wants more than “they seem related.” He wants to hand a new trainee a
+        number of practice hours and get a prediction of what speed to expect.
+      </p>
+      <p>
+        The dots do not sit on a perfect line. Real relationships rarely do. Instead,
+        they cluster into a rough diagonal band, as though a string runs through the
+        cloud, taut between the bottom-left and the top-right, with every dot tugging
+        gently at it.
+      </p>
+      <p>
+        The question is precise: among every possible straight line that could be
+        drawn through this cloud, which one is actually the best one? “Looks about
+        right” is not a method. We need something a machine can check without ever
+        looking at the picture.
+      </p>
+      <p>
+        For a candidate line, each observation has a gap between its observed value
+        and the value predicted by the line. That gap is the <strong>residual</strong>.
+        Positive residuals sit above the line; negative residuals sit below it.
+      </p>
+    </section>
+
+    <section id="least-squares">
+      <h2>Least squares: finding the best line</h2>
+      <p>
+        Regression applies the same basic idea used earlier to understand variance:
+        measure deviations, square them so positive and negative errors cannot cancel,
+        and add them together. Here the “centre” is an entire line rather than a
+        single number.
+      </p>
+      <p>
+        For every candidate line, calculate every residual, square each residual, and
+        add the squared residuals. Somewhere among all possible slopes and intercepts
+        is one line with the smallest possible total.
+      </p>
+
+      <div class="math">
+        <div class="label">The math</div>
+        <p>For a fitted line</p>
+        <div class="equation">ŷ = b₀ + b₁x</div>
+        <p>the residual for observation <em>i</em> is</p>
+        <div class="equation">eᵢ = yᵢ − ŷᵢ</div>
+        <p>and least squares chooses the coefficients that minimise</p>
+        <div class="equation">Σ(yᵢ − ŷᵢ)²</div>
+        <p>
+          Squaring makes large misses count more heavily and prevents positive and
+          negative residuals from cancelling each other.
+        </p>
+      </div>
+
+      <div class="figure">
+        <div class="placeholder">
+          <div>
+            <strong>Figure 6.1 — The least-squares line and residuals</strong><br>
+            Temporary image slot. The final website can insert the book figure here.
+          </div>
+        </div>
+        <div class="caption">
+          Figure 6.1 — The least-squares line and residuals: the string nobody can see.
+        </div>
+      </div>
+
+      <p>
+        Every straight line is fully described by two numbers. The slope tells you
+        how steeply it rises; the intercept anchors the line. In the chapter's
+        cricket example, the illustrative relationship is approximately:
+      </p>
+
+      <div class="equation">speed = 118 + 0.8 × hours</div>
+
+      <p>
+        The slope of 0.8 means that each additional hour of weekly practice is
+        associated with an average increase of about 0.8 km/h in predicted bowling
+        speed across this dataset.
+      </p>
+
+      <div class="interactive">
+        <div class="interactive-head">
+          <h3>Try it: Least Squares Drag</h3>
+          <p>Adjust slope and intercept. Try to beat the least-squares solution.</p>
+        </div>
+        <iframe src="../interactive/least-squares/" title="Least Squares Drag interactive"
+                onerror="this.style.display='none';document.getElementById('ls-fallback').hidden=false"></iframe>
+        <div id="ls-fallback" class="fallback" hidden>
+          The interactive is not available at this relative path yet.
+          Place the supplied <code>ch06_least_squares_drag.html</code> at
+          <code>../interactive/least-squares/index.html</code>.
+        </div>
+      </div>
+
+      <div class="callout">
+        <div class="label">Key idea</div>
+        <p>
+          Least squares is not a matter of drawing the line that looks nicest.
+          Given the same data and the same procedure, the minimisation produces the
+          same fitted line.
+        </p>
+      </div>
+    </section>
+
+    <section id="causation">
+      <h2>The warning label everyone skips</h2>
+      <div class="callout warning">
+        <div class="label">Warning</div>
+        <p>
+          A regression line describes <strong>association</strong>: how two variables
+          move together in the data actually collected. It does not, by itself,
+          establish that one variable causes the other.
+        </p>
+      </div>
+
+      <p>
+        Imagine noticing that whenever an ice-cream truck's jingle plays, more people
+        are wearing shorts. Does the jingle cause people to wear shorts? No:
+        summer is a hidden variable producing both observations.
+      </p>
+      <p>
+        A clean regression relationship can therefore coexist with confounding,
+        reverse causation, or other explanations. Naturally gifted bowlers might
+        practise more and also bowl faster; coaching access might influence both.
+      </p>
+      <p>
+        Establishing genuine causation requires experimental machinery such as
+        randomised assignment and control groups, or dedicated causal-inference
+        methods. A strong fit is not proof of causation.
+      </p>
+    </section>
+
+    <section id="rsquared">
+      <h2>How good is “good,” really?</h2>
+      <p>
+        A least-squares line exists even when the underlying variables have little
+        useful relationship. The fitted line therefore needs a second number that
+        describes how much predictive variation it accounts for.
+      </p>
+      <p>
+        <strong>R-squared</strong> can be understood as the fraction of the original
+        prediction error — the error made by simply guessing the overall mean for
+        everyone — that the fitted line removes.
+      </p>
+
+      <div class="math">
+        <div class="label">The math</div>
+        <div class="equation">R² = 1 − SSE / SST</div>
+        <p>
+          If predicting every observation with the mean produces a total squared
+          error of 1,000, while the fitted line leaves 300, then R² = 0.70.
+          The model has removed 70% of the baseline squared error, leaving 30%
+          unexplained by this simple model.
+        </p>
+      </div>
+
+      <p>
+        R² is therefore not “70% accurate.” It describes explained variation relative
+        to a baseline predictor. The remaining variation can reflect talent,
+        technique, conditioning, measurement noise, omitted predictors, and other
+        factors not represented by the model.
+      </p>
+    </section>
+
+    <section id="regression-name">
+      <h2>Where the word “regression” actually came from</h2>
+      <p>
+        The name comes from Francis Galton's work on the heights of parents and their
+        adult children. Exceptionally tall parents tended to have children who were
+        taller than average, but somewhat shorter than their exceptionally tall
+        parents. Exceptionally short parents showed the corresponding movement back
+        toward the population average.
+      </p>
+      <p>
+        Galton called this pattern “regression toward mediocrity,” later softened to
+        “regression toward the mean.”
+      </p>
+      <p>
+        The phenomenon is not a biological force pulling extreme values toward the
+        middle. It follows naturally from imperfect correlation: an extreme value of
+        one variable tends, on average, to be paired with a less extreme value of the
+        other.
+      </p>
+
+      <div class="callout">
+        <div class="label">Clinical intuition</div>
+        <p>
+          A patient treated because symptoms happen to be at an unusually severe peak
+          may improve afterward partly because extreme measurements tend to be
+          followed by less extreme measurements. Without an appropriate control group,
+          regression to the mean can masquerade as a treatment effect.
+        </p>
+      </div>
+    </section>
+
+    <section id="logistic">
+      <h2>When the line breaks its own promise</h2>
+      <p>
+        A straight-line model is inappropriate when the outcome is constrained.
+        Probability, for example, must remain between 0 and 1. A linear model can
+        predict impossible values such as 1.15.
+      </p>
+      <p>
+        Logistic regression solves this by modelling a transformed quantity,
+        <strong>log-odds</strong>, on an unrestricted linear scale and then converting
+        the result back to probability with the logistic function.
+      </p>
+
+      <div class="math">
+        <div class="label">The math</div>
+        <div class="equation">log(p / (1 − p)) = b₀ + b₁x</div>
+        <p>
+          The logistic transformation maps the unrestricted linear predictor back
+          into the valid probability range from 0 to 1.
+        </p>
+      </div>
+
+      <div class="figure">
+        <div class="placeholder">
+          <div>
+            <strong>Figure 6.3 — Logistic S-curve</strong><br>
+            Temporary image slot. The final website can insert the book figure here.
+          </div>
+        </div>
+        <div class="caption">
+          Figure 6.3 — Logistic S-curve: why probabilities need a curve, not a line.
+        </div>
+      </div>
+
+      <p>
+        Logistic coefficients are commonly interpreted through <strong>odds ratios</strong>.
+        An odds ratio of 1.15 for age means each additional year multiplies the odds
+        of the outcome by 1.15, while the corresponding change in raw probability
+        depends on the starting probability.
+      </p>
+
+      <div class="grid">
+        <div class="card">
+          <h3>Linear regression</h3>
+          <p>Continuous, unbounded outcome; ordinary straight-line prediction.</p>
+        </div>
+        <div class="card">
+          <h3>Logistic regression</h3>
+          <p>Binary outcome; linear predictor operates on the log-odds scale.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="correlation">
+      <h2>The number the line was hiding: Pearson's r</h2>
+      <p>
+        Before fitting a line, we may want to ask how strongly two variables move
+        together and in which direction. Pearson's correlation coefficient, <em>r</em>,
+        is a unitless measure ranging from −1 to +1.
+      </p>
+
+      <div class="math">
+        <div class="label">The math</div>
+        <div class="equation">
+          r = Σ[(xᵢ − x̄)(yᵢ − ȳ)] / √[Σ(xᵢ − x̄)² Σ(yᵢ − ȳ)²]
+        </div>
+        <p>
+          The sign indicates direction; the magnitude indicates the strength of a
+          linear relationship.
+        </p>
+      </div>
+
+      <div class="figure">
+        <div class="placeholder">
+          <div>
+            <strong>Figure 6.4 — Pearson r gallery</strong><br>
+            Temporary image slot. The final website can insert the book figure here.
+          </div>
+        </div>
+        <div class="caption">
+          Figure 6.4 — Pearson r: strong positive, no linear relationship, and strong negative correlation.
+        </div>
+      </div>
+
+      <p>
+        For a simple one-predictor linear regression, R² is the square of Pearson's
+        correlation. Squaring removes the sign, so R² alone cannot tell you whether
+        the relationship is positive or negative.
+      </p>
+    </section>
+
+    <section id="multiple">
+      <h2>When one string isn't the whole story</h2>
+      <p>
+        Real prediction problems rarely have a single useful predictor. A medical
+        researcher predicting blood pressure might need age, weight, sodium intake,
+        family history, and other variables simultaneously.
+      </p>
+      <p>
+        In multiple regression, each coefficient describes the predictor's
+        contribution <em>holding the other included predictors fixed</em>. This is a
+        different quantity from the coefficient in a simple regression.
+      </p>
+
+      <div class="math">
+        <div class="label">The math</div>
+        <div class="equation">ŷ = b₀ + b₁x₁ + b₂x₂ + ··· + bₖxₖ</div>
+      </div>
+
+      <p>
+        Adding predictors always increases or leaves unchanged the training R²,
+        even if the new variables are useless. Adjusted R² therefore penalises model
+        complexity and only rises when an additional predictor improves the fit enough
+        to justify its inclusion.
+      </p>
+
+      <div class="callout warning">
+        <div class="label">Multicollinearity</div>
+        <p>
+          When predictors are strongly correlated with each other, the model can
+          struggle to distinguish their individual contributions. Coefficients may
+          become unstable. The variance inflation factor (VIF) is a standard diagnostic.
+        </p>
+      </div>
+    </section>
+
+    <section id="glm">
+      <h2>One idea, wearing three different outfits</h2>
+      <p>
+        The chapter's broader lesson is that regression does not need to be reinvented
+        for every kind of outcome. A generalized linear model combines three components:
+      </p>
+
+      <div class="grid">
+        <div class="card">
+          <h3>Random component</h3>
+          <p>The probability distribution appropriate for the outcome.</p>
+        </div>
+        <div class="card">
+          <h3>Systematic component</h3>
+          <p>A linear combination of predictors.</p>
+        </div>
+        <div class="card">
+          <h3>Link function</h3>
+          <p>The transformation connecting the linear predictor to the valid outcome scale.</p>
+        </div>
+        <div class="card">
+          <h3>Examples</h3>
+          <p>Linear regression, logistic regression, and count models use the same structural recipe with different outcome assumptions and links.</p>
+        </div>
+      </div>
+
+      <p>
+        For counts, which cannot be negative, a log link can be used. The model works
+        on the logarithm of the expected count and exponentiates the result, ensuring
+        the predicted count remains positive.
+      </p>
+      <p>
+        This is one of the chapter's bridges toward machine learning: the model's
+        output transformation is often what converts an unconstrained internal
+        computation into a valid probability, count, or class.
+      </p>
+    </section>
+
+    <section id="anscombe">
+      <h2>Four datasets, one perfect disguise</h2>
+      <p>
+        In 1973, Francis Anscombe constructed four datasets with nearly identical
+        summary statistics: the same means, variances, regression line, and R².
+        Yet their actual structures are radically different.
+      </p>
+
+      <div class="figure">
+        <div class="placeholder">
+          <div>
+            <strong>Figure 6.7 — Anscombe's Quartet</strong><br>
+            Temporary image slot. Insert the book's figure for the final website.
+          </div>
+        </div>
+        <div class="caption">
+          Figure 6.7 — Anscombe's Quartet: identical summary statistics, different underlying stories.
+        </div>
+      </div>
+
+      <p>
+        One dataset is genuinely linear. Another is curved. A third is dominated by
+        an influential outlier. The fourth has almost all its x-values clustered
+        together, with one point determining the apparent slope.
+      </p>
+      <p>
+        The lesson is not that regression is unreliable. It is that a fitted model
+        and its diagnostic checks are two halves of one complete practice.
+      </p>
+
+      <div class="callout">
+        <div class="label">Diagnostic habit</div>
+        <p>
+          Look at the residual plot. A well-fitting model should leave a roughly
+          patternless cloud around zero. Curves, funnels, or influential observations
+          are signals that the numerical summary is hiding structure.
+        </p>
+      </div>
+
+      <div class="grid">
+        <div class="card"><h3>Anscombe Quartet</h3><p>Compare datasets that share nearly identical regression summaries.</p></div>
+        <div class="card"><h3>Least Squares Drag</h3><p>Move a candidate line and see its squared residual cost.</p></div>
+        <div class="card"><h3>Logistic Curve</h3><p>See why binary outcomes need a bounded S-shaped response.</p></div>
+        <div class="card"><h3>Pearson r</h3><p>Explore direction and strength of linear association.</p></div>
+        <div class="card"><h3>Multicollinearity</h3><p>See what happens when predictors overlap.</p></div>
+      </div>
+    </section>
+
+    <section id="practice">
+      <h2>Try it yourself: Part VI</h2>
+      <div class="practice">
+        <p><strong>Practice module</strong></p>
+        <ol>
+          <li>A cricket coach fits speed = 118 + 0.8 × hours. What does 0.8 mean in plain language?</li>
+          <li>The coach's model has R² = 0.7. What does this number tell you, and what does it not tell you?</li>
+          <li>Why did Galton observe regression toward the mean without invoking a biological “correction” force?</li>
+          <li>A sports team fires its coach after an unusually bad losing streak and then improves. Why might the improvement have nothing to do with the new coach?</li>
+          <li>Two datasets have R² = 0.7, but one has r = +0.84 and the other r = −0.84. What differs?</li>
+          <li>A blood-pressure model has an age coefficient of 0.9. After adding weight, it becomes 0.5. Has age stopped mattering? Explain.</li>
+        </ol>
+
+        <h3>Explore further</h3>
+        <ol>
+          <li>Construct a small fictional dataset matching speed = 118 + 0.8 × hours and R² = 0.7.</li>
+          <li>Construct another dataset with the same regression line and R² but an obviously curved relationship.</li>
+          <li>Design a scenario in which regression to the mean creates an apparent improvement without a real intervention effect.</li>
+          <li>Explain why logistic regression uses log-odds rather than probability directly.</li>
+          <li>Simulate age and weight correlated at 0.6, fit simple and multivariable regression, then repeat at 0.9.</li>
+        </ol>
+      </div>
+
+      <div class="next">
+        <span>Part VI · Regression</span>
+        <span>Temporary test chapter</span>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer class="footer">
+  <div class="wrap">
+    <strong>Temporary Chapter 6 HTML</strong><br>
+    Prepared as a rendering/integration test for the uploaded
+    <em>Interactive Statistics and Machine Learning</em> book.
+    Replace the temporary figure slots with the final book assets and connect the
+    remaining visualization routes before publication.
+  </div>
+</footer>
+
+</body>
+</html>
