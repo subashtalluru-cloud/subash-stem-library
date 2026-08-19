@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>SQL's EXISTS Is a Literal ∃</title>
+<style>
+:root{
+  --part-accent: #4A5568;
+  --part-accent-light: #E2E8F0;
+  --part-highlight: #D97706;
+  --ink: #1A202C;
+  --ink-soft: #4A5568;
+  --paper: #FAFAF7;
+  --paper-raised: #FFFFFF;
+  --line: #D6D3CB;
+  --good: #15803D;
+  --good-bg: #DCFCE7;
+  --bad: #B91C1C;
+  --bad-bg: #FEE2E2;
+  --info-bg: #EFF6FF;
+  --info-ink: #1E40AF;
+  --radius: 10px;
+  --font-serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'SF Mono', 'Cascadia Code', Menlo, monospace;
+}
+*{box-sizing:border-box;}
+body{ margin:0; padding:24px; background:#F3F1EA; font-family:var(--font-sans); color:var(--ink); }
+.mb-widget{ max-width:900px; margin:0 auto; background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:24px 28px 22px; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+.mb-title{ font-family:var(--font-serif); font-size:1.4rem; font-weight:700; color:var(--ink); margin-bottom:6px; line-height:1.25; }
+.mb-sub{ font-size:0.94rem; color:var(--ink-soft); line-height:1.5; margin-bottom:16px; }
+.mb-stage{ background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius); padding:18px 20px; margin-bottom:14px; }
+.mb-controls{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+.mb-btn{ font-family:var(--font-sans); font-size:0.85rem; font-weight:600; padding:8px 14px; border-radius:8px; border:1px solid var(--line); background:#fff; color:var(--ink); cursor:pointer; transition:all .15s; }
+.mb-btn:hover{ border-color:var(--part-accent); background:var(--part-accent-light); }
+.mb-btn.primary{ background:var(--part-accent); color:#fff; border-color:var(--part-accent); }
+.mb-btn.primary:hover{ opacity:0.9; }
+.mb-btn:disabled{ opacity:0.45; cursor:not-allowed; }
+.mb-feedback{ display:none; margin-top:12px; padding:12px 14px; border-radius:8px; font-size:0.87rem; line-height:1.55; }
+.mb-feedback.show{ display:block; animation:fadeIn .25s ease; }
+.mb-feedback.good{ background:var(--good-bg); color:#14532D; border:1px solid #86EFAC; }
+.mb-feedback.bad{ background:var(--bad-bg); color:#7F1D1D; border:1px solid #FCA5A5; }
+.mb-feedback.info{ background:var(--info-bg); color:var(--info-ink); border:1px solid #BFDBFE; }
+.mb-caption{ margin-top:14px; padding-top:12px; border-top:1px solid var(--line); font-size:0.85rem; color:var(--ink-soft); line-height:1.55; font-style:italic; }
+.mb-caption strong{ font-style:normal; color:var(--ink); }
+@keyframes fadeIn{ from{opacity:0; transform:translateY(-3px);} to{opacity:1; transform:translateY(0);} }
+.predict-row{ display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+.predict-chip{ flex:1; min-width:100px; padding:10px; border:2px solid var(--line); border-radius:8px; text-align:center; cursor:pointer; font-weight:600; font-size:0.85rem; transition:all .15s; background:#fff; }
+.predict-chip:hover{ border-color:var(--part-highlight); }
+.predict-chip.selected{ border-color:var(--part-accent); background:var(--part-accent-light); }
+.predict-chip.correct{ border-color:var(--good); background:var(--good-bg); }
+.predict-chip.incorrect{ border-color:var(--bad); background:var(--bad-bg); }
+.badge{ display:inline-block; padding:2px 8px; border-radius:99px; font-size:0.7rem; font-weight:700; letter-spacing:0.02em; }
+.badge.good{ background:var(--good-bg); color:var(--good); }
+.badge.bad{ background:var(--bad-bg); color:var(--bad); }
+
+/* Side-by-side layout utilities — use these instead of centering narrow content in a wide shell */
+.mb-two-col{ display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start; }
+.mb-two-col.uneven-left{ grid-template-columns:1.3fr 1fr; }
+.mb-two-col.uneven-right{ grid-template-columns:1fr 1.3fr; }
+@media (max-width:640px){ .mb-two-col{ grid-template-columns:1fr; } }
+.mb-col{ min-width:0; }
+.mb-svg-wrap{ width:100%; }
+.mb-svg-wrap svg{ width:100%; height:auto; display:block; }
+
+body{ margin:0; padding:24px; background:#F3F1EA; }
+.sql-box{ font-family:var(--font-mono); font-size:0.8rem; background:#1E1E2E; color:#E5E7EB; border-radius:8px; padding:10px; margin-bottom:8px; cursor:pointer; }
+table.mini{ width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:0.78rem; margin:6px 0; }
+table.mini th, table.mini td{ border:1px solid var(--line); padding:5px 8px; text-align:left; }
+table.mini th{ background:var(--part-accent-light); color:var(--part-accent); }
+</style>
+</head>
+<body>
+<div class="mb-widget">
+  <div class="mb-title">SQL's EXISTS Is a Literal ∃</div>
+  <div class="mb-sub">Click each query. Watch the database scan animate — EXISTS stops at the first match; NOT EXISTS must check everything.</div>
+
+  <div class="mb-two-col">
+    <div class="mb-col">
+      <div class="mb-stage">
+        <div id="queriesContainer"></div>
+        <div class="mb-svg-wrap"><svg id="scanSvg" viewBox="0 0 280 60"></svg></div>
+      </div>
+    </div>
+    <div class="mb-col">
+      <div id="fb" class="mb-feedback"></div>
+    </div>
+  </div>
+  <div class="mb-caption">
+    <strong>The aha:</strong> database query planners literally implement existential and universal quantifier logic to decide how to search efficiently.
+  </div>
+
+  <div class="mb-stage" style="margin-top:14px;">
+    <div style="font-weight:600; font-size:0.9rem; margin-bottom:8px;">Running both queries on real (small) data</div>
+    <div style="font-size:0.85rem; line-height:1.6;">
+      Suppose these are the actual tables:
+      <table class="mini">
+        <tr><th>customers</th><th>orders</th></tr>
+        <tr><td>1, Alice</td><td>101, customer_id=1</td></tr>
+        <tr><td>2, Bob</td><td>102, customer_id=1</td></tr>
+        <tr><td>3, Carla</td><td>103, customer_id=3</td></tr>
+      </table>
+      Bob has placed zero orders; Alice and Carla have at least one each. Running the two queries above on this exact data:
+      <div style="font-family:var(--font-mono); background:#fff; border:1px solid var(--line); border-radius:8px; padding:10px; margin:10px 0;">
+        EXISTS query → returns: <strong>Alice, Carla</strong><br>
+        NOT EXISTS query → returns: <strong>Bob</strong>
+      </div>
+      Notice the two results are exact complements of each other over the same customer list — exactly what ¬∃ ≡ ∀¬ guarantees: every customer is in exactly one of the two result sets, never both, never neither. This is a genuinely useful pattern in real reporting: "customers with orders" and "customers with zero orders" (a common churn/re-engagement query) are the EXISTS/NOT EXISTS pair on the identical subquery.
+    </div>
+  </div>
+</div>
+
+<script>
+const queries = [
+  {sql:"SELECT * FROM customers c WHERE EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id)",
+   logic:"∃ o ∈ orders such that o.customer_id = c.id",
+   explain:"Literal existential quantifier. The database can stop the instant it finds ONE matching order — the treasure-hunter's 'success on first match' behavior.",
+   stopEarly:true},
+  {sql:"SELECT * FROM customers c WHERE NOT EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id)",
+   logic:"¬∃ o, equivalently ∀ o ∈ orders, o.customer_id ≠ c.id",
+   explain:"By ¬∃≡∀¬, this becomes a universal claim in disguise: EVERY order must fail to match. The database must check ALL orders — the inspector's exhaustive-check behavior.",
+   stopEarly:false}
+];
+function animateScan(stopEarly){
+  const svg = document.getElementById('scanSvg');
+  svg.innerHTML='';
+  const ns='http://www.w3.org/2000/svg';
+  const el=(tag,attrs)=>{ const e=document.createElementNS(ns,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); return e; };
+  const n=8, stopAt = stopEarly ? 3 : n;
+  for(let i=0;i<n;i++){
+    const x = 10+i*33;
+    svg.appendChild(el('rect',{x,y:15,width:26,height:26,rx:4, fill: i<stopAt?(stopEarly&&i===stopAt-1?'var(--good)':'var(--part-accent-light)'):'#E5E7EB', stroke: i<stopAt?'var(--part-accent)':'var(--line)'}));
+  }
+  const label = el('text',{x:140,y:55,'text-anchor':'middle','font-size':9});
+  label.textContent = stopEarly ? `Stopped after ${stopAt} rows (found match)` : `Checked all ${n} rows (no match found anywhere)`;
+  svg.appendChild(label);
+}
+function render(){
+  const container = document.getElementById('queriesContainer');
+  container.innerHTML = '';
+  queries.forEach((q,i)=>{
+    const div = document.createElement('div');
+    div.className = 'sql-box';
+    div.textContent = q.sql;
+    div.onclick = ()=> reveal(i);
+    container.appendChild(div);
+  });
+}
+function reveal(i){
+  const q = queries[i];
+  animateScan(q.stopEarly);
+  const fb = document.getElementById('fb');
+  fb.className = 'mb-feedback show good';
+  fb.innerHTML = `<strong>Quantifier form:</strong> ${q.logic}<br>${q.explain}`;
+}
+render();
+animateScan(true);
+</script>
+</body>
+</html>

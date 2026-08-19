@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Negating Quantifiers — The Flip Rule</title>
+<style>
+:root{
+  --part-accent: #4A5568;
+  --part-accent-light: #E2E8F0;
+  --part-highlight: #D97706;
+  --ink: #1A202C;
+  --ink-soft: #4A5568;
+  --paper: #FAFAF7;
+  --paper-raised: #FFFFFF;
+  --line: #D6D3CB;
+  --good: #15803D;
+  --good-bg: #DCFCE7;
+  --bad: #B91C1C;
+  --bad-bg: #FEE2E2;
+  --info-bg: #EFF6FF;
+  --info-ink: #1E40AF;
+  --radius: 10px;
+  --font-serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'SF Mono', 'Cascadia Code', Menlo, monospace;
+}
+*{box-sizing:border-box;}
+body{ margin:0; padding:24px; background:#F3F1EA; font-family:var(--font-sans); color:var(--ink); }
+.mb-widget{ max-width:900px; margin:0 auto; background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:24px 28px 22px; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+.mb-title{ font-family:var(--font-serif); font-size:1.4rem; font-weight:700; color:var(--ink); margin-bottom:6px; line-height:1.25; }
+.mb-sub{ font-size:0.94rem; color:var(--ink-soft); line-height:1.5; margin-bottom:16px; }
+.mb-stage{ background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius); padding:18px 20px; margin-bottom:14px; }
+.mb-controls{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+.mb-btn{ font-family:var(--font-sans); font-size:0.85rem; font-weight:600; padding:8px 14px; border-radius:8px; border:1px solid var(--line); background:#fff; color:var(--ink); cursor:pointer; transition:all .15s; }
+.mb-btn:hover{ border-color:var(--part-accent); background:var(--part-accent-light); }
+.mb-btn.primary{ background:var(--part-accent); color:#fff; border-color:var(--part-accent); }
+.mb-btn.primary:hover{ opacity:0.9; }
+.mb-btn:disabled{ opacity:0.45; cursor:not-allowed; }
+.mb-feedback{ display:none; margin-top:12px; padding:12px 14px; border-radius:8px; font-size:0.87rem; line-height:1.55; }
+.mb-feedback.show{ display:block; animation:fadeIn .25s ease; }
+.mb-feedback.good{ background:var(--good-bg); color:#14532D; border:1px solid #86EFAC; }
+.mb-feedback.bad{ background:var(--bad-bg); color:#7F1D1D; border:1px solid #FCA5A5; }
+.mb-feedback.info{ background:var(--info-bg); color:var(--info-ink); border:1px solid #BFDBFE; }
+.mb-caption{ margin-top:14px; padding-top:12px; border-top:1px solid var(--line); font-size:0.85rem; color:var(--ink-soft); line-height:1.55; font-style:italic; }
+.mb-caption strong{ font-style:normal; color:var(--ink); }
+@keyframes fadeIn{ from{opacity:0; transform:translateY(-3px);} to{opacity:1; transform:translateY(0);} }
+.predict-row{ display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+.predict-chip{ flex:1; min-width:100px; padding:10px; border:2px solid var(--line); border-radius:8px; text-align:center; cursor:pointer; font-weight:600; font-size:0.85rem; transition:all .15s; background:#fff; }
+.predict-chip:hover{ border-color:var(--part-highlight); }
+.predict-chip.selected{ border-color:var(--part-accent); background:var(--part-accent-light); }
+.predict-chip.correct{ border-color:var(--good); background:var(--good-bg); }
+.predict-chip.incorrect{ border-color:var(--bad); background:var(--bad-bg); }
+.badge{ display:inline-block; padding:2px 8px; border-radius:99px; font-size:0.7rem; font-weight:700; letter-spacing:0.02em; }
+.badge.good{ background:var(--good-bg); color:var(--good); }
+.badge.bad{ background:var(--bad-bg); color:var(--bad); }
+
+/* Side-by-side layout utilities — use these instead of centering narrow content in a wide shell */
+.mb-two-col{ display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start; }
+.mb-two-col.uneven-left{ grid-template-columns:1.3fr 1fr; }
+.mb-two-col.uneven-right{ grid-template-columns:1fr 1.3fr; }
+@media (max-width:640px){ .mb-two-col{ grid-template-columns:1fr; } }
+.mb-col{ min-width:0; }
+.mb-svg-wrap{ width:100%; }
+.mb-svg-wrap svg{ width:100%; height:auto; display:block; }
+
+body{ margin:0; padding:24px; background:#F3F1EA; }
+</style>
+</head>
+<body>
+<div class="mb-widget">
+  <div class="mb-title">Negating Quantifiers — The Flip Rule</div>
+  <div class="mb-sub">Negating a quantified statement always flips the quantifier type AND negates what's inside. Click to watch the flip happen visually, then try it yourself below.</div>
+
+  <div class="mb-two-col">
+    <div class="mb-col">
+      <div class="mb-stage">
+        <div class="mb-svg-wrap"><svg id="flipSvg" viewBox="0 0 280 130"></svg></div>
+        <div style="text-align:center;">
+          <button class="mb-btn" onclick="showFlip('forall')">¬∀x P(x)</button>
+          <button class="mb-btn" onclick="showFlip('exists')">¬∃x P(x)</button>
+        </div>
+      </div>
+    </div>
+    <div class="mb-col">
+      <div id="fb" class="mb-feedback"></div>
+    </div>
+  </div>
+  <div class="mb-caption">
+    <strong>The aha:</strong> this mirrors De Morgan's Laws exactly — ∀ behaves like ∧ (a giant AND across every element), ∃ behaves like ∨ (a giant OR), and negation flips one into the other.
+  </div>
+
+  <div class="mb-stage" style="margin-top:14px;">
+    <div style="font-weight:600; font-size:0.9rem; margin-bottom:8px;">Now try it yourself</div>
+    <div style="font-size:0.85rem; line-height:1.6;" id="practiceArea"></div>
+  </div>
+</div>
+
+<script>
+function draw(kind){
+  const svg = document.getElementById('flipSvg');
+  svg.innerHTML = '';
+  const ns='http://www.w3.org/2000/svg';
+  const el=(tag,attrs)=>{ const e=document.createElementNS(ns,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); return e; };
+  const leftSym = kind==='forall' ? '¬∀' : '¬∃';
+  const rightSym = kind==='forall' ? '∃¬' : '∀¬';
+  [[70,leftSym+'x P(x)','var(--part-accent)'],[210,rightSym+'x P(x)','var(--part-highlight)']].forEach(([x,text,color])=>{
+    svg.appendChild(el('rect',{x:x-55,y:40,width:110,height:40,rx:8, fill:'#fff', stroke:color,'stroke-width':2}));
+    const t = el('text',{x,y:65,'text-anchor':'middle','font-size':13,'font-family':'monospace', fill:color});
+    t.textContent = text; svg.appendChild(t);
+  });
+  const equals = el('text',{x:140,y:65,'text-anchor':'middle','font-size':16, fill:'var(--good)'});
+  equals.textContent = '≡'; svg.appendChild(equals);
+  const defs = document.createElementNS(ns,'defs');
+  defs.innerHTML = `<marker id="flipArrow" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--part-highlight)"/></marker>`;
+  svg.appendChild(defs);
+  svg.appendChild(el('path',{d:'M105,25 Q140,5 175,25', fill:'none', stroke:'var(--part-highlight)','stroke-width':1.5,'marker-end':'url(#flipArrow)'}));
+  const swapLabel = el('text',{x:140,y:15,'text-anchor':'middle','font-size':8, fill:'var(--part-highlight)'});
+  swapLabel.textContent = 'flip quantifier + negate inside'; svg.appendChild(swapLabel);
+  const plainEnglish = el('text',{x:140,y:105,'text-anchor':'middle','font-size':10});
+  plainEnglish.textContent = kind==='forall' ? '"Not everyone did it" = "someone didn\'t do it"' : '"No one did it" = "everyone didn\'t do it"';
+  svg.appendChild(plainEnglish);
+}
+function showFlip(kind){
+  draw(kind);
+  const fb = document.getElementById('fb');
+  fb.className = 'mb-feedback show good';
+  fb.innerHTML = kind==='forall'
+    ? `¬∀x P(x) ≡ ∃x ¬P(x). "Not everyone did it" simply means "at least one person didn't."`
+    : `¬∃x P(x) ≡ ∀x ¬P(x). "No one did it" means "everyone, without exception, didn't."`;
+}
+draw('forall');
+
+const exercises = [
+  {stmt:"¬∀x (student x passed)", options:["∃x (student x did NOT pass)", "∀x (student x did NOT pass)", "∃x (student x passed)"], correct:0,
+   explain:"Correct answer: ∃x (student x did NOT pass). \"Not every student passed\" means at least one student failed — you don't need to know how many, just that one exists."},
+  {stmt:"¬∃x (file x is corrupted)", options:["∀x (file x is corrupted)", "∀x (file x is NOT corrupted)", "∃x (file x is NOT corrupted)"], correct:1,
+   explain:"Correct answer: ∀x (file x is NOT corrupted). \"No file is corrupted\" means every single file, without exception, is clean."}
+];
+let exIdx = 0;
+function renderExercise(){
+  const area = document.getElementById('practiceArea');
+  if (exIdx >= exercises.length){
+    area.innerHTML = `<span class="badge good">Both exercises complete.</span> The pattern always holds: negating a quantified statement flips ∀↔∃ and negates the inner claim — never just one or the other.`;
+    return;
+  }
+  const ex = exercises[exIdx];
+  area.innerHTML = `<div style="margin-bottom:8px;">Negate: <strong style="font-family:var(--font-mono);">${ex.stmt}</strong></div>
+    <div id="exOptions"></div>`;
+  const optsDiv = document.getElementById('exOptions');
+  ex.options.forEach((opt,i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'mb-btn';
+    btn.style.cssText = 'display:block; width:100%; text-align:left; margin-bottom:6px; font-family:var(--font-mono); font-size:0.8rem;';
+    btn.textContent = opt;
+    btn.onclick = () => answerExercise(i);
+    optsDiv.appendChild(btn);
+  });
+}
+function answerExercise(i){
+  const ex = exercises[exIdx];
+  const area = document.getElementById('practiceArea');
+  const correct = i === ex.correct;
+  area.innerHTML = `<div style="margin-bottom:8px;">Negate: <strong style="font-family:var(--font-mono);">${ex.stmt}</strong></div>
+    <div class="${correct?'badge good':'badge bad'}" style="display:inline-block; margin-bottom:8px;">${correct?'Correct':'Not quite'}</div>
+    <div>${ex.explain}</div>
+    <button class="mb-btn primary" style="margin-top:10px;" onclick="nextExercise()">${exIdx < exercises.length-1 ? 'Next exercise' : 'Finish'}</button>`;
+}
+function nextExercise(){
+  exIdx++;
+  renderExercise();
+}
+renderExercise();
+</script>
+</body>
+</html>
