@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Translate: English → Quantifier Notation</title>
+<style>
+:root{
+  --part-accent: #4A5568;
+  --part-accent-light: #E2E8F0;
+  --part-highlight: #D97706;
+  --ink: #1A202C;
+  --ink-soft: #4A5568;
+  --paper: #FAFAF7;
+  --paper-raised: #FFFFFF;
+  --line: #D6D3CB;
+  --good: #15803D;
+  --good-bg: #DCFCE7;
+  --bad: #B91C1C;
+  --bad-bg: #FEE2E2;
+  --info-bg: #EFF6FF;
+  --info-ink: #1E40AF;
+  --radius: 10px;
+  --font-serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'SF Mono', 'Cascadia Code', Menlo, monospace;
+}
+*{box-sizing:border-box;}
+body{ margin:0; padding:24px; background:#F3F1EA; font-family:var(--font-sans); color:var(--ink); }
+.mb-widget{ max-width:900px; margin:0 auto; background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:24px 28px 22px; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+.mb-title{ font-family:var(--font-serif); font-size:1.4rem; font-weight:700; color:var(--ink); margin-bottom:6px; line-height:1.25; }
+.mb-sub{ font-size:0.94rem; color:var(--ink-soft); line-height:1.5; margin-bottom:16px; }
+.mb-stage{ background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius); padding:18px 20px; margin-bottom:14px; }
+.mb-controls{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+.mb-btn{ font-family:var(--font-sans); font-size:0.85rem; font-weight:600; padding:8px 14px; border-radius:8px; border:1px solid var(--line); background:#fff; color:var(--ink); cursor:pointer; transition:all .15s; }
+.mb-btn:hover{ border-color:var(--part-accent); background:var(--part-accent-light); }
+.mb-btn.primary{ background:var(--part-accent); color:#fff; border-color:var(--part-accent); }
+.mb-btn.primary:hover{ opacity:0.9; }
+.mb-btn:disabled{ opacity:0.45; cursor:not-allowed; }
+.mb-feedback{ display:none; margin-top:12px; padding:12px 14px; border-radius:8px; font-size:0.87rem; line-height:1.55; }
+.mb-feedback.show{ display:block; animation:fadeIn .25s ease; }
+.mb-feedback.good{ background:var(--good-bg); color:#14532D; border:1px solid #86EFAC; }
+.mb-feedback.bad{ background:var(--bad-bg); color:#7F1D1D; border:1px solid #FCA5A5; }
+.mb-feedback.info{ background:var(--info-bg); color:var(--info-ink); border:1px solid #BFDBFE; }
+.mb-caption{ margin-top:14px; padding-top:12px; border-top:1px solid var(--line); font-size:0.85rem; color:var(--ink-soft); line-height:1.55; font-style:italic; }
+.mb-caption strong{ font-style:normal; color:var(--ink); }
+@keyframes fadeIn{ from{opacity:0; transform:translateY(-3px);} to{opacity:1; transform:translateY(0);} }
+.predict-row{ display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+.predict-chip{ flex:1; min-width:100px; padding:10px; border:2px solid var(--line); border-radius:8px; text-align:center; cursor:pointer; font-weight:600; font-size:0.85rem; transition:all .15s; background:#fff; }
+.predict-chip:hover{ border-color:var(--part-highlight); }
+.predict-chip.selected{ border-color:var(--part-accent); background:var(--part-accent-light); }
+.predict-chip.correct{ border-color:var(--good); background:var(--good-bg); }
+.predict-chip.incorrect{ border-color:var(--bad); background:var(--bad-bg); }
+.badge{ display:inline-block; padding:2px 8px; border-radius:99px; font-size:0.7rem; font-weight:700; letter-spacing:0.02em; }
+.badge.good{ background:var(--good-bg); color:var(--good); }
+.badge.bad{ background:var(--bad-bg); color:var(--bad); }
+
+/* Side-by-side layout utilities — use these instead of centering narrow content in a wide shell */
+.mb-two-col{ display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start; }
+.mb-two-col.uneven-left{ grid-template-columns:1.3fr 1fr; }
+.mb-two-col.uneven-right{ grid-template-columns:1fr 1.3fr; }
+@media (max-width:640px){ .mb-two-col{ grid-template-columns:1fr; } }
+.mb-col{ min-width:0; }
+.mb-svg-wrap{ width:100%; }
+.mb-svg-wrap svg{ width:100%; height:auto; display:block; }
+
+body{ margin:0; padding:24px; background:#F3F1EA; }
+.translate-item{ background:#fff; border:1px solid var(--line); border-radius:8px; padding:12px; margin-bottom:10px; }
+.opt-btn{ font-family:var(--font-mono); font-size:0.8rem; display:block; width:100%; text-align:left; padding:8px 10px; margin-bottom:6px; border-radius:6px; border:1px solid var(--line); background:#fff; cursor:pointer; }
+.opt-btn:disabled{ opacity:0.6; cursor:default; }
+</style>
+</head>
+<body>
+<div class="mb-widget">
+  <div class="mb-title">Translate: English → Quantifier Notation</div>
+  <div class="mb-sub">Pick the correct symbolic translation for each of five statements. Click to see the matching visualized as connected slots.</div>
+
+  <div class="mb-two-col">
+    <div class="mb-col">
+      <div class="mb-stage">
+        <div style="text-align:center; font-size:0.8rem; color:var(--ink-soft); margin-bottom:8px;" id="scoreTrack">Score: 0 / 5</div>
+        <div class="mb-svg-wrap"><svg id="matchSvg" viewBox="0 0 280 70"></svg></div>
+      </div>
+    </div>
+    <div class="mb-col">
+      <div id="fb" class="mb-feedback"></div>
+    </div>
+  </div>
+  <div id="itemsContainer"></div>
+  <div class="mb-caption">
+    <strong>The aha:</strong> quantifiers solve for statements exactly what set-builder notation solved for collections: turning an infinitely long claim into one finite, checkable symbol string.
+  </div>
+</div>
+
+<script>
+const items = [
+  {en:"Every integer is even or odd.",
+   options:["∀x (x is even ∨ x is odd)","∃x (x is even ∨ x is odd)","∀x (x is even ∧ x is odd)"],
+   correct:0, explain:"∀x (even ∨ odd) — EVERY integer satisfies (even OR odd). Using ∧ would wrongly claim every integer is both at once."},
+  {en:"Some even number is also prime.",
+   options:["∀x (x is even → x is prime)","∃x (x is even ∧ x is prime)","∃x (x is even → x is prime)"],
+   correct:1, explain:"∃x (even ∧ prime) — AT LEAST ONE number is even AND prime (namely 2)."},
+  {en:"No integer squared is negative.",
+   options:["∀x ¬(x² < 0)","∃x ¬(x² < 0)","¬∀x (x² < 0)"],
+   correct:0, explain:"∀x ¬(x² < 0) — for EVERY integer, its square is NOT negative."},
+  {en:"Every prime greater than 2 is odd.",
+   options:["∃x (x is prime ∧ x>2 → x is odd)","∀x ((x is prime ∧ x>2) → x is odd)","∀x (x is prime → x is odd)"],
+   correct:1, explain:"∀x ((prime ∧ x>2) → odd) — for EVERY x, if it's a prime greater than 2, THEN it's odd. Dropping 'x>2' would wrongly exclude 2, the one even prime — the conditional's hypothesis needs both conditions."},
+  {en:"There is no largest natural number.",
+   options:["∃x ∀y (y ≤ x)","¬∃x ∀y (y ≤ x)","∀x ∃y (y ≤ x)"],
+   correct:1, explain:"¬∃x ∀y (y ≤ x) — it is NOT the case that some x is greater than or equal to every y. Equivalently (by the flip rule from earlier in this chapter) this becomes ∀x ∃y (y > x): this is exactly the domino-bridge proof from Chapter 4, now written in full quantifier notation."}
+];
+let currentItem = 0;
+let answered = {};
+let score = 0;
+
+function drawMatch(en, symbol, correct){
+  const svg = document.getElementById('matchSvg');
+  svg.innerHTML = '';
+  const ns='http://www.w3.org/2000/svg';
+  const el=(tag,attrs)=>{ const e=document.createElementNS(ns,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); return e; };
+  svg.appendChild(el('rect',{x:10,y:15,width:110,height:40,rx:6, fill:'var(--part-accent-light)', stroke:'var(--part-accent)'}));
+  const t1 = document.createElementNS(ns,'foreignObject');
+  t1.setAttribute('x',15); t1.setAttribute('y',18); t1.setAttribute('width',100); t1.setAttribute('height',34);
+  t1.innerHTML = `<div xmlns="http://www.w3.org/1999/xhtml" style="font-size:8px; line-height:1.2;">${en}</div>`;
+  svg.appendChild(t1);
+
+  svg.appendChild(el('rect',{x:160,y:15,width:110,height:40,rx:6, fill: correct===null?'#fff':(correct?'#F0FDF4':'#FEF2F2'), stroke: correct===null?'var(--part-highlight)':(correct?'var(--good)':'var(--bad)')}));
+  const t2 = el('text',{x:215,y:38,'text-anchor':'middle','font-size':9,'font-family':'monospace'});
+  t2.textContent = symbol || '?'; svg.appendChild(t2);
+
+  if(symbol){
+    const defs = document.createElementNS(ns,'defs');
+    defs.innerHTML = `<marker id="matchArrow" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="${correct?'var(--good)':'var(--bad)'}"/></marker>`;
+    svg.appendChild(defs);
+    svg.appendChild(el('line',{x1:120,y1:35,x2:158,y2:35, stroke: correct?'var(--good)':'var(--bad)','stroke-width':2,'marker-end':'url(#matchArrow)'}));
+  }
+}
+function render(){
+  const container = document.getElementById('itemsContainer');
+  container.innerHTML = '';
+  items.forEach((it,i)=>{
+    const div = document.createElement('div');
+    div.className = 'translate-item';
+    div.innerHTML = `<div style="font-weight:600; margin-bottom:6px;">${i+1}. "${it.en}"</div>` +
+      it.options.map((opt,j)=>`<button class="opt-btn" id="opt-${i}-${j}" onclick="check(${i},${j})">${opt}</button>`).join('');
+    container.appendChild(div);
+  });
+}
+function check(itemIdx, optIdx){
+  if (answered[itemIdx] !== undefined) return;
+  const it = items[itemIdx];
+  const correct = optIdx === it.correct;
+  answered[itemIdx] = correct;
+  if (correct) score++;
+  document.getElementById('scoreTrack').textContent = `Score: ${score} / ${items.length}`;
+  document.querySelectorAll(`[id^="opt-${itemIdx}-"]`).forEach(b=>b.disabled=true);
+  drawMatch(it.en, it.options[optIdx], correct);
+  const fb = document.getElementById('fb');
+  fb.className = `mb-feedback show ${correct?'good':'bad'}`;
+  fb.innerHTML = (correct ? '<strong>Correct.</strong> ' : '<strong>Not quite.</strong> ') + it.explain;
+  if (Object.keys(answered).length === items.length){
+    fb.innerHTML += ` <strong>Final score: ${score}/${items.length}.</strong>`;
+  }
+}
+render();
+drawMatch(items[0].en, null, null);
+</script>
+</body>
+</html>

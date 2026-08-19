@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>The Inspector vs. The Treasure Hunter</title>
+<style>
+:root{
+  --part-accent: #4A5568;
+  --part-accent-light: #E2E8F0;
+  --part-highlight: #D97706;
+  --ink: #1A202C;
+  --ink-soft: #4A5568;
+  --paper: #FAFAF7;
+  --paper-raised: #FFFFFF;
+  --line: #D6D3CB;
+  --good: #15803D;
+  --good-bg: #DCFCE7;
+  --bad: #B91C1C;
+  --bad-bg: #FEE2E2;
+  --info-bg: #EFF6FF;
+  --info-ink: #1E40AF;
+  --radius: 10px;
+  --font-serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'SF Mono', 'Cascadia Code', Menlo, monospace;
+}
+*{box-sizing:border-box;}
+body{ margin:0; padding:24px; background:#F3F1EA; font-family:var(--font-sans); color:var(--ink); }
+.mb-widget{ max-width:900px; margin:0 auto; background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:24px 28px 22px; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+.mb-title{ font-family:var(--font-serif); font-size:1.4rem; font-weight:700; color:var(--ink); margin-bottom:6px; line-height:1.25; }
+.mb-sub{ font-size:0.94rem; color:var(--ink-soft); line-height:1.5; margin-bottom:16px; }
+.mb-stage{ background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius); padding:18px 20px; margin-bottom:14px; }
+.mb-controls{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+.mb-btn{ font-family:var(--font-sans); font-size:0.85rem; font-weight:600; padding:8px 14px; border-radius:8px; border:1px solid var(--line); background:#fff; color:var(--ink); cursor:pointer; transition:all .15s; }
+.mb-btn:hover{ border-color:var(--part-accent); background:var(--part-accent-light); }
+.mb-btn.primary{ background:var(--part-accent); color:#fff; border-color:var(--part-accent); }
+.mb-btn.primary:hover{ opacity:0.9; }
+.mb-btn:disabled{ opacity:0.45; cursor:not-allowed; }
+.mb-feedback{ display:none; margin-top:12px; padding:12px 14px; border-radius:8px; font-size:0.87rem; line-height:1.55; }
+.mb-feedback.show{ display:block; animation:fadeIn .25s ease; }
+.mb-feedback.good{ background:var(--good-bg); color:#14532D; border:1px solid #86EFAC; }
+.mb-feedback.bad{ background:var(--bad-bg); color:#7F1D1D; border:1px solid #FCA5A5; }
+.mb-feedback.info{ background:var(--info-bg); color:var(--info-ink); border:1px solid #BFDBFE; }
+.mb-caption{ margin-top:14px; padding-top:12px; border-top:1px solid var(--line); font-size:0.85rem; color:var(--ink-soft); line-height:1.55; font-style:italic; }
+.mb-caption strong{ font-style:normal; color:var(--ink); }
+@keyframes fadeIn{ from{opacity:0; transform:translateY(-3px);} to{opacity:1; transform:translateY(0);} }
+.predict-row{ display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+.predict-chip{ flex:1; min-width:100px; padding:10px; border:2px solid var(--line); border-radius:8px; text-align:center; cursor:pointer; font-weight:600; font-size:0.85rem; transition:all .15s; background:#fff; }
+.predict-chip:hover{ border-color:var(--part-highlight); }
+.predict-chip.selected{ border-color:var(--part-accent); background:var(--part-accent-light); }
+.predict-chip.correct{ border-color:var(--good); background:var(--good-bg); }
+.predict-chip.incorrect{ border-color:var(--bad); background:var(--bad-bg); }
+.badge{ display:inline-block; padding:2px 8px; border-radius:99px; font-size:0.7rem; font-weight:700; letter-spacing:0.02em; }
+.badge.good{ background:var(--good-bg); color:var(--good); }
+.badge.bad{ background:var(--bad-bg); color:var(--bad); }
+
+/* Side-by-side layout utilities — use these instead of centering narrow content in a wide shell */
+.mb-two-col{ display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start; }
+.mb-two-col.uneven-left{ grid-template-columns:1.3fr 1fr; }
+.mb-two-col.uneven-right{ grid-template-columns:1fr 1.3fr; }
+@media (max-width:640px){ .mb-two-col{ grid-template-columns:1fr; } }
+.mb-col{ min-width:0; }
+.mb-svg-wrap{ width:100%; }
+.mb-svg-wrap svg{ width:100%; height:auto; display:block; }
+
+body{ margin:0; padding:24px; background:#F3F1EA; }
+.warehouse{ display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin:14px 0; }
+.crate{ width:44px; height:44px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; cursor:pointer; transition:transform 0.15s; background:#fff; border:2px solid var(--line); }
+.crate:hover{ transform:scale(1.08); }
+.crate.checked-good{ background:#F0FDF4; border-color:var(--good); }
+.crate.checked-bad{ background:#FEF2F2; border-color:var(--bad); }
+</style>
+</head>
+<body>
+<div class="mb-widget">
+  <div class="mb-title">The Inspector vs. The Treasure Hunter</div>
+  <div class="mb-sub">10 crates, each holds a number. Claim: "every crate holds an even number" (∀). Claim: "some crate holds a number over 50" (∃). Watch the meter — one claim is fragile (one failure ends it), the other is resilient (one success ends it).</div>
+
+  <div class="mb-two-col">
+    <div class="mb-col">
+      <div class="mb-stage">
+        <div style="text-align:center; margin-bottom:8px;">
+          <button class="mb-btn" onclick="reset()">Reset warehouse</button>
+          <button class="mb-btn primary" id="modeBtn" onclick="toggleMode()">Mode: ∀ Inspector (checking "all even")</button>
+        </div>
+        <div class="mb-svg-wrap"><svg id="meterSvg" viewBox="0 0 260 50"></svg></div>
+        <div class="warehouse" id="warehouse"></div>
+      </div>
+    </div>
+    <div class="mb-col">
+      <div id="fb" class="mb-feedback"></div>
+    </div>
+  </div>
+  <div class="mb-caption">
+    <strong>The aha:</strong> the Inspector (∀) can be defeated by ONE bad crate but needs to open every crate to declare victory. The Treasure Hunter (∃) can declare victory on ONE good crate but needs to open every crate to declare defeat. They are structural mirror images.
+  </div>
+
+  <div class="mb-stage" style="margin-top:14px;">
+    <div style="font-weight:600; font-size:0.9rem; margin-bottom:8px;">Writing both claims in formal notation</div>
+    <div style="font-size:0.85rem; line-height:1.6;">
+      Let C be the set of 10 crates, and let v(x) be the number inside crate x. The two games above translate directly:
+      <div style="font-family:var(--font-mono); background:#fff; border:1px solid var(--line); border-radius:8px; padding:10px; margin:10px 0;">
+        Inspector's claim: &nbsp; ∀x ∈ C, v(x) is even<br>
+        Treasure Hunter's claim: &nbsp; ∃x ∈ C such that v(x) &gt; 50
+      </div>
+      Read aloud: "for all x in C, v(x) is even" and "there exists an x in C such that v(x) is greater than 50." Every ∀ claim in mathematics has this same fragility — a universal statement about a set, true only if EVERY member cooperates, disproven by a single holdout. Every ∃ claim has the opposite shape — confirmed the instant you find ONE match, but to declare it false you must rule out every single possibility. This isn't specific to crates and numbers; it's the structural DNA of "for all" and "there exists" wherever they appear, from Goldbach's conjecture (a ∀ claim, still unconfirmed after 4 quintillion checks) to database queries (SQL's EXISTS, covered elsewhere in this chapter).
+    </div>
+  </div>
+</div>
+
+<script>
+let crateValues = [];
+let mode = 'forall';
+let checked = [];
+let done = false;
+
+function genCrates(){
+  crateValues = [];
+  for(let i=0;i<10;i++) crateValues.push(2*(Math.floor(Math.random()*20)+1) - (Math.random()<0.15?1:0));
+  crateValues[Math.floor(Math.random()*10)] = 63;
+}
+function drawMeter(){
+  const svg = document.getElementById('meterSvg');
+  svg.innerHTML = '';
+  const ns='http://www.w3.org/2000/svg';
+  const el=(tag,attrs)=>{ const e=document.createElementNS(ns,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); return e; };
+  const total=10;
+  for(let i=0;i<total;i++){
+    const x = 10+i*24;
+    let fill = '#E5E7EB';
+    if(checked.includes(i)){
+      const passesForall = crateValues[i]%2===0;
+      const passesExists = crateValues[i]>50;
+      const pass = mode==='forall' ? passesForall : passesExists;
+      fill = pass ? 'var(--good)' : 'var(--bad)';
+    }
+    svg.appendChild(el('rect',{x,y:10,width:20,height:20,rx:3, fill}));
+  }
+  const label = el('text',{x:130,y:45,'text-anchor':'middle','font-size':9, fill:'var(--ink-soft)'});
+  label.textContent = `${checked.length}/10 crates opened`;
+  svg.appendChild(label);
+}
+function render(){
+  const wh = document.getElementById('warehouse');
+  wh.innerHTML = '';
+  crateValues.forEach((v,i)=>{
+    const c = document.createElement('div');
+    c.className = 'crate';
+    c.textContent = '📦';
+    c.onclick = ()=> inspect(c, i);
+    if(checked.includes(i)){
+      const passesForall = v % 2 === 0;
+      const passesExists = v > 50;
+      const pass = mode==='forall' ? passesForall : passesExists;
+      c.classList.add(pass ? 'checked-good':'checked-bad');
+      c.textContent = v;
+    }
+    wh.appendChild(c);
+  });
+  drawMeter();
+}
+function inspect(el, i){
+  if(done) return;
+  if(!checked.includes(i)) checked.push(i);
+  render();
+  const fb = document.getElementById('fb');
+  if(mode === 'forall'){
+    const bad = checked.find(idx => crateValues[idx] % 2 !== 0);
+    if(bad !== undefined){
+      done = true;
+      fb.className = 'mb-feedback show bad';
+      fb.innerHTML = `<strong>∀ claim falsified.</strong> Crate held ${crateValues[bad]} — odd! The Inspector needed only ONE counterexample (see the red square in the meter) to fail the entire claim, after ${checked.length} checks — this is why "for all" claims are easy to disprove but hard to prove.`;
+    } else if(checked.length === 10){
+      done = true;
+      fb.className = 'mb-feedback show good';
+      fb.innerHTML = `<strong>∀ claim confirmed.</strong> All 10 crates checked (meter fully green) — every one even. That's the cost of proving "for all" directly: checking everything.`;
+    } else {
+      fb.className = 'mb-feedback show info';
+      fb.innerHTML = `${checked.length}/10 checked (see meter above), all even so far. Claim still standing — but not proven.`;
+    }
+  } else {
+    const good = checked.find(idx => crateValues[idx] > 50);
+    if(good !== undefined){
+      done = true;
+      fb.className = 'mb-feedback show good';
+      fb.innerHTML = `<strong>∃ claim confirmed.</strong> Crate held ${crateValues[good]} — over 50! The Treasure Hunter needed only ONE match (green square) to succeed, after ${checked.length} checks.`;
+    } else if(checked.length === 10){
+      done = true;
+      fb.className = 'mb-feedback show bad';
+      fb.innerHTML = `<strong>∃ claim disproven.</strong> All 10 crates checked (meter fully red) — none over 50. That's the cost of disproving "there exists": checking everything.`;
+    } else {
+      fb.className = 'mb-feedback show info';
+      fb.innerHTML = `${checked.length}/10 checked, no match yet. Claim still open.`;
+    }
+  }
+}
+function toggleMode(){
+  mode = mode === 'forall' ? 'exists' : 'forall';
+  document.getElementById('modeBtn').textContent = mode==='forall'
+    ? 'Mode: ∀ Inspector (checking "all even")'
+    : 'Mode: ∃ Treasure Hunter (checking "some >50")';
+  reset();
+}
+function reset(){
+  genCrates(); checked=[]; done=false;
+  document.getElementById('fb').className='mb-feedback';
+  render();
+}
+reset();
+</script>
+</body>
+</html>

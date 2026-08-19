@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Verified for a Billion Cases — Still Not a Proof</title>
+<style>
+:root{
+  --part-accent: #4A5568;
+  --part-accent-light: #E2E8F0;
+  --part-highlight: #D97706;
+  --ink: #1A202C;
+  --ink-soft: #4A5568;
+  --paper: #FAFAF7;
+  --paper-raised: #FFFFFF;
+  --line: #D6D3CB;
+  --good: #15803D;
+  --good-bg: #DCFCE7;
+  --bad: #B91C1C;
+  --bad-bg: #FEE2E2;
+  --info-bg: #EFF6FF;
+  --info-ink: #1E40AF;
+  --radius: 10px;
+  --font-serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'SF Mono', 'Cascadia Code', Menlo, monospace;
+}
+*{box-sizing:border-box;}
+body{ margin:0; padding:24px; background:#F3F1EA; font-family:var(--font-sans); color:var(--ink); }
+.mb-widget{ max-width:900px; margin:0 auto; background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:24px 28px 22px; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+.mb-title{ font-family:var(--font-serif); font-size:1.4rem; font-weight:700; color:var(--ink); margin-bottom:6px; line-height:1.25; }
+.mb-sub{ font-size:0.94rem; color:var(--ink-soft); line-height:1.5; margin-bottom:16px; }
+.mb-stage{ background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius); padding:18px 20px; margin-bottom:14px; }
+.mb-controls{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+.mb-btn{ font-family:var(--font-sans); font-size:0.85rem; font-weight:600; padding:8px 14px; border-radius:8px; border:1px solid var(--line); background:#fff; color:var(--ink); cursor:pointer; transition:all .15s; }
+.mb-btn:hover{ border-color:var(--part-accent); background:var(--part-accent-light); }
+.mb-btn.primary{ background:var(--part-accent); color:#fff; border-color:var(--part-accent); }
+.mb-btn.primary:hover{ opacity:0.9; }
+.mb-btn:disabled{ opacity:0.45; cursor:not-allowed; }
+.mb-feedback{ display:none; margin-top:12px; padding:12px 14px; border-radius:8px; font-size:0.87rem; line-height:1.55; }
+.mb-feedback.show{ display:block; animation:fadeIn .25s ease; }
+.mb-feedback.good{ background:var(--good-bg); color:#14532D; border:1px solid #86EFAC; }
+.mb-feedback.bad{ background:var(--bad-bg); color:#7F1D1D; border:1px solid #FCA5A5; }
+.mb-feedback.info{ background:var(--info-bg); color:var(--info-ink); border:1px solid #BFDBFE; }
+.mb-caption{ margin-top:14px; padding-top:12px; border-top:1px solid var(--line); font-size:0.85rem; color:var(--ink-soft); line-height:1.55; font-style:italic; }
+.mb-caption strong{ font-style:normal; color:var(--ink); }
+@keyframes fadeIn{ from{opacity:0; transform:translateY(-3px);} to{opacity:1; transform:translateY(0);} }
+.predict-row{ display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+.predict-chip{ flex:1; min-width:100px; padding:10px; border:2px solid var(--line); border-radius:8px; text-align:center; cursor:pointer; font-weight:600; font-size:0.85rem; transition:all .15s; background:#fff; }
+.predict-chip:hover{ border-color:var(--part-highlight); }
+.predict-chip.selected{ border-color:var(--part-accent); background:var(--part-accent-light); }
+.predict-chip.correct{ border-color:var(--good); background:var(--good-bg); }
+.predict-chip.incorrect{ border-color:var(--bad); background:var(--bad-bg); }
+.badge{ display:inline-block; padding:2px 8px; border-radius:99px; font-size:0.7rem; font-weight:700; letter-spacing:0.02em; }
+.badge.good{ background:var(--good-bg); color:var(--good); }
+.badge.bad{ background:var(--bad-bg); color:var(--bad); }
+
+/* Side-by-side layout utilities — use these instead of centering narrow content in a wide shell */
+.mb-two-col{ display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start; }
+.mb-two-col.uneven-left{ grid-template-columns:1.3fr 1fr; }
+.mb-two-col.uneven-right{ grid-template-columns:1fr 1.3fr; }
+@media (max-width:640px){ .mb-two-col{ grid-template-columns:1fr; } }
+.mb-col{ min-width:0; }
+.mb-svg-wrap{ width:100%; }
+.mb-svg-wrap svg{ width:100%; height:auto; display:block; }
+
+body{ margin:0; padding:24px; background:#F3F1EA; }
+</style>
+</head>
+<body>
+<div class="mb-widget">
+  <div class="mb-title">Verified for a Billion Cases — Still Not a Proof</div>
+  <div class="mb-sub">Goldbach's Conjecture: every even number greater than 2 is the sum of two primes. Click to check more — watch the confirmation bar grow toward infinity while never becoming a proof.</div>
+
+  <div class="mb-two-col">
+    <div class="mb-col">
+      <div class="mb-stage">
+        <div class="mb-svg-wrap"><svg id="goldbachSvg" viewBox="0 0 280 90"></svg></div>
+        <button class="mb-btn primary" onclick="checkMore()" style="display:block; margin:10px auto;">Check the next 5 even numbers</button>
+      </div>
+    </div>
+    <div class="mb-col">
+      <div id="goldbachList" style="font-family:var(--font-mono); font-size:0.8rem; max-height:180px; overflow-y:auto; background:#fff; border:1px solid var(--line); border-radius:8px; padding:8px;"></div>
+    </div>
+  </div>
+  <div id="fb" class="mb-feedback"></div>
+  <div class="mb-caption">
+    <strong>The aha:</strong> Goldbach's Conjecture has been verified by computer for every even number up to over 4×10¹⁸ — and it is STILL not proven, as of this writing. No finite amount of checking can ever establish a claim about infinitely many numbers.
+  </div>
+
+  <div class="mb-stage" style="margin-top:14px;">
+    <div style="font-weight:600; font-size:0.9rem; margin-bottom:8px;">A related conjecture that WAS proven — the "weak" version</div>
+    <div style="font-size:0.85rem; line-height:1.6;">
+      This chapter's example is technically the <strong>strong (binary) Goldbach conjecture</strong>: every even number > 2 is the sum of TWO primes. There's a related, weaker claim: every odd number > 5 is the sum of THREE primes (the "weak" or "ternary" Goldbach conjecture) — for example, 27 = 3 + 5 + 19. Because it only demands three primes instead of two, it's a genuinely easier target, and in 2013 mathematician Harald Helfgott actually proved it, completely and rigorously, for every odd number without exception. This is worth knowing precisely because it shows the "verified but not proven" situation you just explored isn't a permanent feature of every hard conjecture — sometimes the right proof technique arrives and a conjecture becomes a theorem. The strong version above is still waiting for its Helfgott.
+    </div>
+  </div>
+</div>
+
+<script>
+function isPrime(n){
+  if(n<2) return false;
+  for(let i=2;i*i<=n;i++) if(n%i===0) return false;
+  return true;
+}
+function findGoldbachPair(n){
+  for(let p=2;p<=n/2;p++){
+    if(isPrime(p) && isPrime(n-p)) return [p, n-p];
+  }
+  return null;
+}
+let current = 4;
+let checked = 0;
+function draw(){
+  const svg = document.getElementById('goldbachSvg');
+  svg.innerHTML='';
+  const ns='http://www.w3.org/2000/svg';
+  const el=(tag,attrs)=>{ const e=document.createElementNS(ns,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); return e; };
+  const barWidth = Math.min(250, checked*4);
+  svg.appendChild(el('rect',{x:15,y:30,width:barWidth,height:20, fill:'var(--good)'}));
+  svg.appendChild(el('rect',{x:15+barWidth,y:30,width:250-barWidth,height:20, fill:'#E5E7EB'}));
+  const dots = el('text',{x:270,y:45,'font-size':16, fill:'var(--ink-soft)'});
+  dots.textContent = '∞'; svg.appendChild(dots);
+  const label = el('text',{x:140,y:65,'text-anchor':'middle','font-size':9});
+  label.textContent = `${checked} even numbers verified, out of infinitely many`;
+  svg.appendChild(label);
+}
+function checkMore(){
+  const list = document.getElementById('goldbachList');
+  for(let i=0;i<5;i++){
+    const pair = findGoldbachPair(current);
+    const row = document.createElement('div');
+    row.textContent = pair ? `${current} = ${pair[0]} + ${pair[1]} ✓` : `${current} = NO PAIR FOUND`;
+    list.appendChild(row);
+    current += 2;
+    checked++;
+  }
+  draw();
+  list.scrollTop = list.scrollHeight;
+  const fb = document.getElementById('fb');
+  fb.className = 'mb-feedback show info';
+  fb.innerHTML = checked < 30
+    ? `${checked} confirmations and counting. Feels pretty convincing — is it a proof yet?`
+    : `${checked} confirmations — mathematicians have actually verified into the quintillions using computers. Still: this is the marble-bag pattern from Chapter 3, at planetary scale. The green bar grows, but the ∞ never gets closer — no number of confirming cases logically rules out a counterexample beyond what's been checked.`;
+}
+draw();
+checkMore();
+</script>
+</body>
+</html>
