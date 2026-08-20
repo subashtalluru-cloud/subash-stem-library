@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Same correlation, four different truths</title>
+<style>
+  :root{
+    --bg:#0a1128; --panel:#0f1a3d; --panel2:#13214d; --line:#26356f;
+    --ink:#eef1fb; --sub:#9fb0e0; --accent:#4f8cff; --accent2:#ff8a5b;
+    --good:#3ecf8e; --bad:#ff5d6c; --warn:#ffcb47;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:radial-gradient(1200px 700px at 20% -10%, #16215a 0%, var(--bg) 55%);
+    color:var(--ink); line-height:1.6; padding:0 0 4rem;
+  }
+  header{padding:3rem 1.5rem 1.5rem; max-width:920px; margin:0 auto;}
+  h1{font-size:clamp(1.6rem,3vw,2.3rem); margin:0 0 .5rem; font-weight:600;}
+  .kicker{color:var(--accent); font-size:.85rem; letter-spacing:.12em; text-transform:uppercase; font-weight:600; margin-bottom:.6rem;}
+  .lede{color:var(--sub); font-size:1.05rem; max-width:70ch;}
+  main{max-width:920px; margin:0 auto; padding:0 1.5rem;}
+  section{margin-top:2.5rem;}
+  h2{font-size:1.3rem; font-weight:600; margin-bottom:.4rem;}
+  p.explain{color:var(--sub); max-width:68ch; margin-top:.3rem;}
+  .panel{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:1.5rem; margin-top:1.2rem;}
+
+  .scenario-picker{display:flex; gap:.6rem; flex-wrap:wrap; margin-bottom:1.2rem;}
+  .scenario-btn{
+    background:var(--panel2); border:1px solid var(--line); color:var(--ink);
+    padding:.55rem 1rem; border-radius:10px; font-size:.85rem; cursor:pointer; text-align:left;
+  }
+  .scenario-btn.active{border-color:var(--accent); background:rgba(79,140,255,.15);}
+  .scenario-btn:hover{border-color:var(--accent);}
+
+  .corr-display{
+    display:flex; align-items:center; gap:1rem; background:var(--panel2);
+    border-radius:12px; padding:1rem 1.2rem; margin-bottom:1.2rem; border:1px solid var(--line);
+  }
+  .corr-num{font-size:2.2rem; font-weight:700; color:var(--warn); font-variant-numeric:tabular-nums;}
+  .corr-label{color:var(--sub); font-size:.9rem;}
+
+  .explanation-picker{display:grid; grid-template-columns:repeat(4,1fr); gap:.5rem; margin-bottom:1.2rem;}
+  @media (max-width:700px){ .explanation-picker{grid-template-columns:1fr 1fr;} }
+  .exp-btn{
+    background:var(--panel2); border:1px solid var(--line); color:var(--ink);
+    padding:.7rem .5rem; border-radius:10px; font-size:.8rem; cursor:pointer; text-align:center;
+  }
+  .exp-btn.active{border-color:var(--accent2); background:rgba(255,138,91,.15); color:var(--accent2); font-weight:600;}
+  .exp-btn:hover{border-color:var(--accent2);}
+
+  svg{width:100%; height:auto; display:block; background:var(--panel2); border-radius:12px; margin-bottom:1rem;}
+
+  .story-box{
+    border-left:3px solid var(--accent2); background:rgba(255,138,91,.08);
+    padding:1rem 1.2rem; border-radius:8px; font-size:.95rem;
+  }
+  .story-box strong{color:var(--accent2);}
+
+  .why-grid{display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1.2rem;}
+  @media (max-width:760px){ .why-grid{grid-template-columns:1fr;} }
+  .why-card{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:1.1rem 1.2rem;}
+  .why-card h3{margin:0 0 .5rem; font-size:1rem; color:var(--accent);}
+  .why-card p{margin:0; color:var(--sub); font-size:.92rem;}
+  footer{max-width:920px; margin:3rem auto 0; padding:0 1.5rem; color:var(--sub); font-size:.85rem; border-top:1px solid var(--line); padding-top:1.2rem;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="kicker">Interactive · Statistics</div>
+  <h1>The correlation number never tells you which story is true</h1>
+  <p class="lede">Pick a real-world pair of variables that move together. The correlation stays exactly the same
+  number the whole time — what changes is the causal diagram underneath it. That's the entire point: a strong
+  correlation is compatible with several completely different realities, and the number alone can't choose between them.</p>
+</header>
+
+<main>
+
+<section>
+  <h2>1. Pick a pair of correlated variables</h2>
+  <div class="panel">
+    <div class="scenario-picker" id="scenarioPicker"></div>
+
+    <div class="corr-display">
+      <div class="corr-num" id="corrNum">r = 0.82</div>
+      <div class="corr-label" id="corrLabel">A strong, real, measured correlation. This number does not change below — only the explanation does.</div>
+    </div>
+
+    <h2 style="font-size:1rem; margin-bottom:.6rem;">2. Now pick which explanation you think is true</h2>
+    <div class="explanation-picker" id="explanationPicker">
+      <button class="exp-btn" data-exp="forward">X causes Y</button>
+      <button class="exp-btn" data-exp="reverse">Y causes X</button>
+      <button class="exp-btn" data-exp="confound">A hidden factor Z causes both</button>
+      <button class="exp-btn" data-exp="coincidence">Coincidence / no real link</button>
+    </div>
+
+    <svg id="stage" viewBox="0 0 560 220" role="img" aria-label="Causal diagram showing the relationship between the two selected variables under the chosen explanation"></svg>
+
+    <div class="story-box" id="storyBox"></div>
+  </div>
+</section>
+
+<section>
+  <h2>3. Why the number can't settle it</h2>
+  <div class="why-grid">
+    <div class="why-card">
+      <h3>Correlation is symmetric, causation isn't</h3>
+      <p>The correlation between X and Y is mathematically identical to the correlation between Y and X — the
+      formula doesn't know which one happened first, or whether either caused the other. Direction is not
+      contained in the number at all.</p>
+    </div>
+    <div class="why-card">
+      <h3>A confounder creates correlation without any direct link</h3>
+      <p>If Z drives both X and Y independently, X and Y move together perfectly — with zero causal arrow between
+      them. Ice cream sales and drowning deaths both rise with heat; ice cream doesn't cause drownings.</p>
+    </div>
+    <div class="why-card">
+      <h3>Big datasets manufacture coincidental correlations</h3>
+      <p>Test enough unrelated variable pairs and some will correlate strongly by chance alone. The larger and
+      more varied the dataset, the more "significant-looking" nonsense correlations you should expect to find.</p>
+    </div>
+    <div class="why-card">
+      <h3>What actually distinguishes them: intervention</h3>
+      <p>The real test is: if you forcibly change X (not just observe it), does Y change? That's what experiments,
+      randomized trials, and controlled interventions are for — they're the tool that correlation alone can never substitute for.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>Subash STEM Library — Interactive Learning Lab</footer>
+
+<script>
+(function(){
+  const scenarios = [
+    {
+      id:'icecream', label:'Ice cream sales & drowning deaths', x:'Ice cream sales', y:'Drowning deaths', r:'0.72',
+      stories:{
+        forward:'If this were true, buying more ice cream would somehow make people drown more — no plausible mechanism exists.',
+        reverse:'If this were true, drownings would cause more ice cream sales — equally implausible.',
+        confound:'<strong>This is the real explanation.</strong> Hot weather (Z) independently drives both more ice cream buying and more swimming — and more swimming means more drowning risk. Ice cream and drownings never touch each other causally.',
+        coincidence:'Unlikely here — the seasonal pattern is too consistent and too large to be random noise. A confounder explains it far better.'
+      }
+    },
+    {
+      id:'shoesize', label:'Shoe size & reading ability (children)', x:'Shoe size', y:'Reading score', r:'0.61',
+      stories:{
+        forward:'Bigger feet do not improve reading comprehension — there is no mechanism.',
+        reverse:'Better reading does not make feet grow — also implausible.',
+        confound:'<strong>This is the real explanation.</strong> Age (Z) drives both: older children have bigger feet and, from more years of schooling, better reading scores. Remove age from the comparison and the correlation between shoe size and reading vanishes.',
+        coincidence:'Not coincidence — the pattern is too strong and consistent across populations. It is a textbook confounder.'
+      }
+    },
+    {
+      id:'exercise', label:'Exercise frequency & job satisfaction', x:'Weekly exercise', y:'Job satisfaction', r:'0.44',
+      stories:{
+        forward:'<strong>Plausible and well-supported.</strong> Exercise measurably reduces stress and improves mood and energy, which can genuinely raise reported satisfaction at work.',
+        reverse:'<strong>Also plausible.</strong> People who feel more satisfied and less stressed at work may have more energy and time left to exercise — causation could run this way too.',
+        confound:'Possible: financial security or overall health (Z) could independently support both more exercise and more career satisfaction.',
+        coincidence:'Unlikely given consistent findings across multiple studies, but the effect size here is modest — leaving real room for any of the other three explanations.'
+      }
+    },
+    {
+      id:'nicolascage', label:'Nicolas Cage films & pool drownings (per year, US)', x:'Nicolas Cage films released', y:'Swimming pool drownings', r:'0.67',
+      stories:{
+        forward:'No mechanism connects a film release to swimming pool deaths — implausible on its face.',
+        reverse:'Drowning statistics do not influence a film release schedule — implausible.',
+        confound:'No sensible shared cause links these two specific series either.',
+        coincidence:'<strong>This is the real explanation.</strong> With enough time-series pairs compared, some will correlate strongly by pure chance. This is a famous example used specifically to demonstrate spurious correlation — a strong number with no causal story behind it at all.'
+      }
+    }
+  ];
+
+  let currentScenario = scenarios[0];
+  let currentExp = 'confound';
+
+  const picker = document.getElementById('scenarioPicker');
+  scenarios.forEach(s=>{
+    const b = document.createElement('button');
+    b.className = 'scenario-btn' + (s.id===currentScenario.id ? ' active':'');
+    b.textContent = s.label;
+    b.addEventListener('click', ()=>{
+      currentScenario = s;
+      document.querySelectorAll('.scenario-btn').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      render();
+    });
+    picker.appendChild(b);
+  });
+
+  document.querySelectorAll('.exp-btn').forEach(b=>{
+    if(b.dataset.exp==='confound') b.classList.add('active');
+    b.addEventListener('click', ()=>{
+      currentExp = b.dataset.exp;
+      document.querySelectorAll('.exp-btn').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      render();
+    });
+  });
+
+  function el(tag, attrs, text){
+    const e = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    for(const k in attrs) e.setAttribute(k, attrs[k]);
+    if(text) e.textContent = text;
+    return e;
+  }
+
+  function drawDiagram(exp){
+    const svg = document.getElementById('stage');
+    svg.innerHTML = '';
+    const W=560,H=220;
+
+    function node(cx,cy,label,color){
+      const g = el('g',{});
+      g.appendChild(el('circle',{cx,cy,r:44,fill:color,opacity:.18,stroke:color,'stroke-width':2}));
+      const words = label.split(' ');
+      let ty = cy - (words.length>1 ? 6 : 0);
+      words.forEach((w,i)=>{
+        g.appendChild(el('text',{x:cx,y:ty+i*15,'text-anchor':'middle','font-size':12,fill:'#eef1fb','font-weight':500}, w));
+      });
+      svg.appendChild(g);
+      return {cx,cy};
+    }
+
+    function arrow(x1,y1,x2,y2,color){
+      const dx=x2-x1, dy=y2-y1, len=Math.sqrt(dx*dx+dy*dy);
+      const ux=dx/len, uy=dy/len;
+      const sx=x1+ux*48, sy=y1+uy*48, ex=x2-ux*48, ey=y2-uy*48;
+      svg.appendChild(el('line',{x1:sx,y1:sy,x2:ex,y2:ey,stroke:color,'stroke-width':2.5,'marker-end':'url(#arrowhead)'}));
+    }
+
+    const defs = el('defs',{});
+    const marker = el('marker',{id:'arrowhead',markerWidth:8,markerHeight:8,refX:6,refY:4,orient:'auto'});
+    marker.appendChild(el('path',{d:'M0,0 L8,4 L0,8 Z',fill:'#ff8a5b'}));
+    defs.appendChild(marker);
+    svg.appendChild(defs);
+
+    const X = currentScenario.x, Y = currentScenario.y;
+
+    if(exp==='forward'){
+      const a = node(140,110,X,'#4f8cff');
+      const b = node(420,110,Y,'#ff8a5b');
+      arrow(a.cx,a.cy,b.cx,b.cy,'#ff8a5b');
+    } else if(exp==='reverse'){
+      const a = node(140,110,X,'#4f8cff');
+      const b = node(420,110,Y,'#ff8a5b');
+      arrow(b.cx,b.cy,a.cx,a.cy,'#ff8a5b');
+    } else if(exp==='confound'){
+      const z = node(280,50,'Hidden factor Z','#3ecf8e');
+      const a = node(140,180,X,'#4f8cff');
+      const b = node(420,180,Y,'#ff8a5b');
+      arrow(z.cx,z.cy,a.cx,a.cy,'#3ecf8e');
+      arrow(z.cx,z.cy,b.cx,b.cy,'#3ecf8e');
+      svg.appendChild(el('line',{x1:a.cx+44,y1:a.cy,x2:b.cx-44,y2:b.cy,stroke:'#9fb0e0','stroke-width':1.5,'stroke-dasharray':'5,4'}));
+    } else {
+      const a = node(140,110,X,'#4f8cff');
+      const b = node(420,110,Y,'#ff8a5b');
+      svg.appendChild(el('line',{x1:a.cx+44,y1:a.cy,x2:b.cx-44,y2:b.cy,stroke:'#9fb0e0','stroke-width':1.5,'stroke-dasharray':'5,4'}));
+      svg.appendChild(el('text',{x:280,y:70,'text-anchor':'middle','font-size':12,fill:'#9fb0e0'}, 'no causal link — coincidence'));
+    }
+  }
+
+  function render(){
+    document.getElementById('corrNum').textContent = 'r = ' + currentScenario.r;
+    document.getElementById('corrLabel').textContent = X_Y_LABEL();
+    drawDiagram(currentExp);
+    document.getElementById('storyBox').innerHTML = currentScenario.stories[currentExp];
+  }
+
+  function X_Y_LABEL(){
+    return currentScenario.x + ' vs ' + currentScenario.y + ' — this correlation stays fixed no matter which explanation you pick below.';
+  }
+
+  render();
+})();
+</script>
+
+</body>
+</html>
