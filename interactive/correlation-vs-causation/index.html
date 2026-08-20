@@ -6,14 +6,14 @@
 <title>Same correlation, four different truths</title>
 <style>
   :root{
-    --bg:#0a1128; --panel:#0f1a3d; --panel2:#13214d; --line:#26356f;
-    --ink:#eef1fb; --sub:#9fb0e0; --accent:#4f8cff; --accent2:#ff8a5b;
-    --good:#3ecf8e; --bad:#ff5d6c; --warn:#ffcb47;
+    --bg:#faf7f2; --panel:#ffffff; --panel2:#f3ede2; --line:#e3ded3;
+    --ink:#3a352e; --sub:#8a8073; --accent:#d97a52; --accent2:#7ea8a0;
+    --good:#7fb896; --bad:#e08a7d; --warn:#e3b563;
   }
   *{box-sizing:border-box}
   body{
     margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-    background:radial-gradient(1200px 700px at 20% -10%, #16215a 0%, var(--bg) 55%);
+    background:var(--bg);
     color:var(--ink); line-height:1.6; padding:0 0 4rem;
   }
   header{padding:3rem 1.5rem 1.5rem; max-width:920px; margin:0 auto;}
@@ -24,14 +24,14 @@
   section{margin-top:2.5rem;}
   h2{font-size:1.3rem; font-weight:600; margin-bottom:.4rem;}
   p.explain{color:var(--sub); max-width:68ch; margin-top:.3rem;}
-  .panel{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:1.5rem; margin-top:1.2rem;}
+  .panel{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:1.5rem; margin-top:1.2rem; box-shadow:0 1px 3px rgba(60,50,30,.04);}
 
   .scenario-picker{display:flex; gap:.6rem; flex-wrap:wrap; margin-bottom:1.2rem;}
   .scenario-btn{
     background:var(--panel2); border:1px solid var(--line); color:var(--ink);
     padding:.55rem 1rem; border-radius:10px; font-size:.85rem; cursor:pointer; text-align:left;
   }
-  .scenario-btn.active{border-color:var(--accent); background:rgba(79,140,255,.15);}
+  .scenario-btn.active{border-color:var(--accent); background:#f7e4d8;}
   .scenario-btn:hover{border-color:var(--accent);}
 
   .corr-display{
@@ -47,16 +47,16 @@
     background:var(--panel2); border:1px solid var(--line); color:var(--ink);
     padding:.7rem .5rem; border-radius:10px; font-size:.8rem; cursor:pointer; text-align:center;
   }
-  .exp-btn.active{border-color:var(--accent2); background:rgba(255,138,91,.15); color:var(--accent2); font-weight:600;}
+  .exp-btn.active{border-color:var(--accent2); background:#e3ece9; color:#4f766e; font-weight:600;}
   .exp-btn:hover{border-color:var(--accent2);}
 
   svg{width:100%; height:auto; display:block; background:var(--panel2); border-radius:12px; margin-bottom:1rem;}
 
   .story-box{
-    border-left:3px solid var(--accent2); background:rgba(255,138,91,.08);
+    border-left:3px solid var(--accent); background:#fbf1e8;
     padding:1rem 1.2rem; border-radius:8px; font-size:.95rem;
   }
-  .story-box strong{color:var(--accent2);}
+  .story-box strong{color:var(--accent);}
 
   .why-grid{display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1.2rem;}
   @media (max-width:760px){ .why-grid{grid-template-columns:1fr;} }
@@ -213,13 +213,13 @@
     svg.innerHTML = '';
     const W=560,H=220;
 
-    function node(cx,cy,label,color){
+    function node(cx,cy,label,color,textColor){
       const g = el('g',{});
-      g.appendChild(el('circle',{cx,cy,r:44,fill:color,opacity:.18,stroke:color,'stroke-width':2}));
+      g.appendChild(el('circle',{cx,cy,r:44,fill:color,opacity:.5,stroke:color,'stroke-width':2}));
       const words = label.split(' ');
       let ty = cy - (words.length>1 ? 6 : 0);
       words.forEach((w,i)=>{
-        g.appendChild(el('text',{x:cx,y:ty+i*15,'text-anchor':'middle','font-size':12,fill:'#eef1fb','font-weight':500}, w));
+        g.appendChild(el('text',{x:cx,y:ty+i*15,'text-anchor':'middle','font-size':12,fill:textColor,'font-weight':600}, w));
       });
       svg.appendChild(g);
       return {cx,cy};
@@ -234,32 +234,32 @@
 
     const defs = el('defs',{});
     const marker = el('marker',{id:'arrowhead',markerWidth:8,markerHeight:8,refX:6,refY:4,orient:'auto'});
-    marker.appendChild(el('path',{d:'M0,0 L8,4 L0,8 Z',fill:'#ff8a5b'}));
+    marker.appendChild(el('path',{d:'M0,0 L8,4 L0,8 Z',fill:'#c9714b'}));
     defs.appendChild(marker);
     svg.appendChild(defs);
 
     const X = currentScenario.x, Y = currentScenario.y;
 
     if(exp==='forward'){
-      const a = node(140,110,X,'#4f8cff');
-      const b = node(420,110,Y,'#ff8a5b');
-      arrow(a.cx,a.cy,b.cx,b.cy,'#ff8a5b');
+      const a = node(140,110,X,'#f0d9c8','#8a4b2c');
+      const b = node(420,110,Y,'#f0d9c8','#8a4b2c');
+      arrow(a.cx,a.cy,b.cx,b.cy,'#c9714b');
     } else if(exp==='reverse'){
-      const a = node(140,110,X,'#4f8cff');
-      const b = node(420,110,Y,'#ff8a5b');
-      arrow(b.cx,b.cy,a.cx,a.cy,'#ff8a5b');
+      const a = node(140,110,X,'#f0d9c8','#8a4b2c');
+      const b = node(420,110,Y,'#f0d9c8','#8a4b2c');
+      arrow(b.cx,b.cy,a.cx,a.cy,'#c9714b');
     } else if(exp==='confound'){
-      const z = node(280,50,'Hidden factor Z','#3ecf8e');
-      const a = node(140,180,X,'#4f8cff');
-      const b = node(420,180,Y,'#ff8a5b');
-      arrow(z.cx,z.cy,a.cx,a.cy,'#3ecf8e');
-      arrow(z.cx,z.cy,b.cx,b.cy,'#3ecf8e');
-      svg.appendChild(el('line',{x1:a.cx+44,y1:a.cy,x2:b.cx-44,y2:b.cy,stroke:'#9fb0e0','stroke-width':1.5,'stroke-dasharray':'5,4'}));
+      const z = node(280,50,'Hidden factor Z','#d3e6de','#3f6e60');
+      const a = node(140,180,X,'#f0d9c8','#8a4b2c');
+      const b = node(420,180,Y,'#f0d9c8','#8a4b2c');
+      arrow(z.cx,z.cy,a.cx,a.cy,'#7ea8a0');
+      arrow(z.cx,z.cy,b.cx,b.cy,'#7ea8a0');
+      svg.appendChild(el('line',{x1:a.cx+44,y1:a.cy,x2:b.cx-44,y2:b.cy,stroke:'#c4bba8','stroke-width':1.5,'stroke-dasharray':'5,4'}));
     } else {
-      const a = node(140,110,X,'#4f8cff');
-      const b = node(420,110,Y,'#ff8a5b');
-      svg.appendChild(el('line',{x1:a.cx+44,y1:a.cy,x2:b.cx-44,y2:b.cy,stroke:'#9fb0e0','stroke-width':1.5,'stroke-dasharray':'5,4'}));
-      svg.appendChild(el('text',{x:280,y:70,'text-anchor':'middle','font-size':12,fill:'#9fb0e0'}, 'no causal link — coincidence'));
+      const a = node(140,110,X,'#f0d9c8','#8a4b2c');
+      const b = node(420,110,Y,'#f0d9c8','#8a4b2c');
+      svg.appendChild(el('line',{x1:a.cx+44,y1:a.cy,x2:b.cx-44,y2:b.cy,stroke:'#c4bba8','stroke-width':1.5,'stroke-dasharray':'5,4'}));
+      svg.appendChild(el('text',{x:280,y:70,'text-anchor':'middle','font-size':12,fill:'#8a8073'}, 'no causal link — coincidence'));
     }
   }
 
