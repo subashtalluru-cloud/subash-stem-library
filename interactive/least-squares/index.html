@@ -19,4 +19,262 @@
   header{padding:3rem 1.5rem 1.5rem; max-width:920px; margin:0 auto;}
   h1{font-size:clamp(1.6rem,3vw,2.3rem); margin:0 0 .5rem; font-weight:600;}
   .kicker{color:var(--accent); font-size:.85rem; letter-spacing:.12em; text-transform:uppercase; font-weight:600; margin-bottom:.6rem;}
-  .lede{color:var(--sub);
+  .lede{color:var(--sub); font-size:1.05rem; max-width:70ch;}
+  main{max-width:920px; margin:0 auto; padding:0 1.5rem;}
+  section{margin-top:2.5rem;}
+  h2{font-size:1.3rem; font-weight:600; margin-bottom:.4rem;}
+  p.explain{color:var(--sub); max-width:68ch; margin-top:.3rem;}
+  .panel{
+    background:var(--panel); border:1px solid var(--line); border-radius:16px;
+    padding:1.5rem; margin-top:1.2rem; box-shadow:0 1px 3px rgba(60,50,30,.04);
+  }
+  .stage-wrap{display:grid; grid-template-columns: 1.5fr 1fr; gap:1.5rem;}
+  @media (max-width:760px){ .stage-wrap{grid-template-columns:1fr;} }
+  svg{width:100%; height:auto; display:block; background:var(--panel2); border-radius:12px; touch-action:none;}
+  .metrics{display:flex; flex-direction:column; gap:.9rem;}
+  .metric{
+    background:var(--panel2); border-radius:12px; padding:1rem 1.1rem;
+    border:1px solid var(--line);
+  }
+  .metric .label{font-size:.8rem; color:var(--sub); text-transform:uppercase; letter-spacing:.06em; margin-bottom:.3rem;}
+  .metric .value{font-size:1.7rem; font-weight:700; font-variant-numeric:tabular-nums;}
+  .metric.abs .value{color:var(--accent2);}
+  .metric.sq .value{color:var(--accent);}
+  .bar-track{height:10px; border-radius:6px; background:#f1e7da; margin-top:.6rem; overflow:hidden;}
+  .bar-fill{height:100%; border-radius:6px; transition:width .15s ease;}
+  .bar-fill.abs{background:var(--accent2);}
+  .bar-fill.sq{background:var(--accent);}
+  .controls{display:flex; gap:.6rem; flex-wrap:wrap; margin-top:1rem;}
+  button{
+    background:var(--panel2); color:var(--ink); border:1px solid var(--line);
+    padding:.55rem 1rem; border-radius:10px; font-size:.85rem; cursor:pointer;
+    transition:background .15s, border-color .15s;
+  }
+  button:hover{background:#f5e8d8; border-color:var(--accent);}
+  button.primary{background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600;}
+  button.primary:hover{background:#c96a44;}
+  .hint{color:var(--sub); font-size:.85rem; margin-top:.8rem;}
+  .callout{
+    border-left:3px solid var(--warn); background:#fbf3e4;
+    padding:.9rem 1.1rem; border-radius:8px; margin-top:1.2rem; color:var(--ink); font-size:.95rem;
+  }
+  .why-grid{display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1.2rem;}
+  @media (max-width:760px){ .why-grid{grid-template-columns:1fr;} }
+  .why-card{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:1.1rem 1.2rem;}
+  .why-card h3{margin:0 0 .5rem; font-size:1rem; color:var(--accent);}
+  .why-card p{margin:0; color:var(--sub); font-size:.92rem;}
+  footer{max-width:920px; margin:3rem auto 0; padding:0 1.5rem; color:var(--sub); font-size:.85rem; border-top:1px solid var(--line); padding-top:1.2rem;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="kicker">Interactive · Statistics</div>
+  <h1>Why squared error, not just "closest line"?</h1>
+  <p class="lede">Any line can look "roughly right." Least squares picks one specific line — the one that
+  minimizes the <em>sum of squared</em> vertical distances to every point. Below, you can compare that choice
+  against the more obvious alternative — minimizing <em>absolute</em> distance — and see exactly where they disagree.</p>
+</header>
+
+<main>
+
+<section>
+  <h2>1. Drag the line, watch both penalties</h2>
+  <p class="explain">Drag the two handles to rotate/shift the line. The two meters on the right update live:
+  one totals the plain distances (absolute error), the other totals the squared distances (squared error).
+  Try to make each meter as small as possible — notice they don't agree on the same "best" line.</p>
+
+  <div class="panel">
+    <div class="stage-wrap">
+      <svg id="stage" viewBox="0 0 560 400" role="img" aria-label="Scatter plot with a draggable line; error segments shown as vertical dashed lines from each point to the line.">
+        <title>Least squares fitting stage</title>
+      </svg>
+      <div class="metrics">
+        <div class="metric abs">
+          <div class="label">Sum of |errors| (absolute)</div>
+          <div class="value" id="absVal">–</div>
+          <div class="bar-track"><div class="bar-fill abs" id="absBar" style="width:0%"></div></div>
+        </div>
+        <div class="metric sq">
+          <div class="label">Sum of errors² (squared)</div>
+          <div class="value" id="sqVal">–</div>
+          <div class="bar-track"><div class="bar-fill sq" id="sqBar" style="width:0%"></div></div>
+        </div>
+        <div class="controls">
+          <button class="primary" id="fitSquares">Snap to least-squares line</button>
+          <button id="addOutlier">Add an outlier point</button>
+          <button id="reset">Reset points</button>
+        </div>
+        <p class="hint">Drag either handle. The dashed lines show each point's vertical error — the raw ingredient both meters are built from.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>2. Add one outlier. Watch what happens.</h2>
+  <p class="explain">Click "Add an outlier point," then hit "Snap to least-squares line" again. The squared-error
+  line bends noticeably toward the outlier. Absolute error barely reacts. That's not a bug — it's the entire
+  personality difference between the two penalties.</p>
+  <div class="callout" id="outlierNote">
+    A single point 20 units away contributes 20 to absolute error, but 400 to squared error.
+    Squaring doesn't just measure a bigger miss — it treats it as <strong>disproportionately worse</strong>.
+    That's why the squared-error line works harder to avoid large misses, even at the cost of several small ones.
+  </div>
+</section>
+
+<section>
+  <h2>3. Why square at all? Three real reasons</h2>
+  <p class="explain">This isn't an arbitrary convention — squaring earns its place for concrete, connected reasons.</p>
+  <div class="why-grid">
+    <div class="why-card">
+      <h3>It has one clean minimum</h3>
+      <p>Squared error is a smooth curve — a parabola in each parameter. Calculus gives you a single exact
+      minimum by setting a derivative to zero. Absolute error has a sharp corner at zero, which calculus can't
+      differentiate through, so there's no clean formula — you'd need to search for the answer instead of solving for it.</p>
+    </div>
+    <div class="why-card">
+      <h3>It penalizes big misses harder</h3>
+      <p>Doubling an error quadruples its squared contribution. This makes the fit intolerant of large,
+      systematic misses — useful when a big error usually signals something is actually wrong with the model,
+      not just noise.</p>
+    </div>
+    <div class="why-card">
+      <h3>It connects directly to variance</h3>
+      <p>Squared error is the same building block used to define variance and standard deviation. Minimizing it
+      means the fitted line is, in a precise statistical sense, the one that explains the most variance in your
+      data — linking curve-fitting straight back to the rest of statistics.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>Subash STEM Library — Interactive Learning Lab</footer>
+
+<script>
+(function(){
+  const svg = document.getElementById('stage');
+  const NS = 'http://www.w3.org/2000/svg';
+  const W = 560, H = 400, PAD = 40;
+
+  let points = [
+    {x:80,y:300},{x:140,y:260},{x:190,y:275},{x:230,y:220},
+    {x:290,y:210},{x:340,y:170},{x:390,y:190},{x:430,y:140},{x:480,y:120}
+  ];
+
+  let h1 = {x:70, y:290};
+  let h2 = {x:490, y:130};
+
+  function lineParams(){
+    const m = (h2.y - h1.y) / (h2.x - h1.x || 1e-6);
+    const b = h1.y - m*h1.x;
+    return {m,b};
+  }
+
+  function yOnLine(x){ const {m,b} = lineParams(); return m*x+b; }
+
+  function computeErrors(){
+    let absSum=0, sqSum=0;
+    for(const p of points){
+      const err = p.y - yOnLine(p.x);
+      absSum += Math.abs(err);
+      sqSum += err*err;
+    }
+    return {absSum, sqSum};
+  }
+
+  function fmt(n){ return n.toFixed(1); }
+
+  function updateMetrics(){
+    const {absSum, sqSum} = computeErrors();
+    document.getElementById('absVal').textContent = fmt(absSum);
+    document.getElementById('sqVal').textContent = fmt(sqSum);
+    const maxAbs = 900, maxSq = 60000;
+    document.getElementById('absBar').style.width = Math.min(100, absSum/maxAbs*100) + '%';
+    document.getElementById('sqBar').style.width = Math.min(100, sqSum/maxSq*100) + '%';
+  }
+
+  function el(tag, attrs){
+    const e = document.createElementNS(NS, tag);
+    for(const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  function render(){
+    svg.innerHTML = '';
+    svg.appendChild(el('line',{x1:PAD,y1:H-PAD,x2:W-PAD,y2:H-PAD,stroke:'#ddd0bc','stroke-width':1}));
+    svg.appendChild(el('line',{x1:PAD,y1:PAD,x2:PAD,y2:H-PAD,stroke:'#ddd0bc','stroke-width':1}));
+
+    const {m,b} = lineParams();
+    const xL = 20, xR = 540;
+    svg.appendChild(el('line',{x1:xL,y1:m*xL+b,x2:xR,y2:m*xR+b,stroke:'#d97a52','stroke-width':2.5}));
+
+    for(const p of points){
+      const ly = yOnLine(p.x);
+      svg.appendChild(el('line',{x1:p.x,y1:p.y,x2:p.x,y2:ly,stroke:'#7ea8a0','stroke-width':1.3,'stroke-dasharray':'4,3',opacity:.8}));
+      svg.appendChild(el('circle',{cx:p.x,cy:p.y,r:5,fill:'#3a352e'}));
+    }
+
+    [h1,h2].forEach((h,i)=>{
+      const c = el('circle',{cx:h.x,cy:h.y,r:9,fill:'#d97a52',stroke:'#ffffff','stroke-width':2,cursor:'grab'});
+      c.dataset.handle = i;
+      svg.appendChild(c);
+    });
+
+    updateMetrics();
+    attachDrag();
+  }
+
+  function attachDrag(){
+    let active = null;
+    svg.querySelectorAll('circle[data-handle]').forEach(c=>{
+      c.addEventListener('pointerdown', e=>{
+        active = c.dataset.handle;
+        svg.setPointerCapture(e.pointerId);
+      });
+    });
+    svg.addEventListener('pointermove', e=>{
+      if(active===null) return;
+      const rect = svg.getBoundingClientRect();
+      const scaleX = W / rect.width, scaleY = H / rect.height;
+      const x = (e.clientX - rect.left) * scaleX;
+      const y = (e.clientY - rect.top) * scaleY;
+      if(active === '0'){ h1.x=x; h1.y=y; } else { h2.x=x; h2.y=y; }
+      render();
+    });
+    svg.addEventListener('pointerup', ()=>{ active=null; });
+    svg.addEventListener('pointerleave', ()=>{ active=null; });
+  }
+
+  function leastSquaresFit(){
+    const n = points.length;
+    let sx=0, sy=0, sxy=0, sxx=0;
+    for(const p of points){ sx+=p.x; sy+=p.y; sxy+=p.x*p.y; sxx+=p.x*p.x; }
+    const m = (n*sxy - sx*sy) / (n*sxx - sx*sx);
+    const b = (sy - m*sx) / n;
+    h1 = {x:20, y:m*20+b};
+    h2 = {x:540, y:m*540+b};
+    render();
+  }
+
+  document.getElementById('fitSquares').addEventListener('click', leastSquaresFit);
+  document.getElementById('addOutlier').addEventListener('click', ()=>{
+    points.push({x:500, y:340});
+    render();
+  });
+  document.getElementById('reset').addEventListener('click', ()=>{
+    points = [
+      {x:80,y:300},{x:140,y:260},{x:190,y:275},{x:230,y:220},
+      {x:290,y:210},{x:340,y:170},{x:390,y:190},{x:430,y:140},{x:480,y:120}
+    ];
+    h1 = {x:70,y:290}; h2 = {x:490,y:130};
+    render();
+  });
+
+  render();
+})();
+</script>
+
+</body>
+</html>
