@@ -6,13 +6,13 @@
 <title>Where distributions come from — watch the shape emerge</title>
 <style>
   :root{
-    --bg:#0a1128; --panel:#0f1a3d; --panel2:#13214d; --line:#26356f;
-    --ink:#eef1fb; --sub:#9fb0e0; --accent:#4f8cff; --accent2:#ff8a5b; --good:#3ecf8e;
+    --bg:#faf7f2; --panel:#ffffff; --panel2:#eef2ef; --line:#e3ded3;
+    --ink:#3a352e; --sub:#8a8073; --accent:#7ea8a0; --accent2:#d97a52; --good:#7fb896;
   }
   *{box-sizing:border-box}
   body{
     margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-    background:radial-gradient(1200px 700px at 80% -10%, #16215a 0%, var(--bg) 55%);
+    background:var(--bg);
     color:var(--ink); line-height:1.6; padding:0 0 4rem;
   }
   header{padding:3rem 1.5rem 1.5rem; max-width:920px; margin:0 auto;}
@@ -23,7 +23,7 @@
   section{margin-top:2.5rem;}
   h2{font-size:1.3rem; font-weight:600; margin-bottom:.4rem;}
   p.explain{color:var(--sub); max-width:68ch; margin-top:.3rem;}
-  .panel{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:1.5rem; margin-top:1.2rem;}
+  .panel{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:1.5rem; margin-top:1.2rem; box-shadow:0 1px 3px rgba(60,50,30,.04);}
   svg{width:100%; height:auto; display:block; background:var(--panel2); border-radius:12px;}
   .row{display:flex; gap:1.5rem; flex-wrap:wrap; align-items:center; margin-top:1.2rem;}
   .field{display:flex; flex-direction:column; gap:.35rem; min-width:160px; flex:1;}
@@ -35,9 +35,9 @@
     background:var(--panel2); color:var(--ink); border:1px solid var(--line);
     padding:.6rem 1.1rem; border-radius:10px; font-size:.88rem; cursor:pointer;
   }
-  button:hover{background:#182a5e; border-color:var(--accent);}
-  button.primary{background:var(--accent); border-color:var(--accent); color:#0a1128; font-weight:600;}
-  button.primary:hover{background:#6fa2ff;}
+  button:hover{background:#e2ebe6; border-color:var(--accent);}
+  button.primary{background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600;}
+  button.primary:hover{background:#6b978e;}
   .stat-row{display:flex; gap:1rem; margin-top:1rem; flex-wrap:wrap;}
   .stat{background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:.7rem 1rem; flex:1; min-width:130px;}
   .stat .l{font-size:.75rem; color:var(--sub); text-transform:uppercase;}
@@ -48,7 +48,7 @@
   .why-card h3{margin:0 0 .5rem; font-size:1rem; color:var(--accent);}
   .why-card p{margin:0; color:var(--sub); font-size:.92rem;}
   footer{max-width:920px; margin:3rem auto 0; padding:0 1.5rem; color:var(--sub); font-size:.85rem; border-top:1px solid var(--line); padding-top:1.2rem;}
-  .badge{display:inline-block; background:rgba(79,140,255,.15); color:var(--accent); font-size:.75rem; padding:.2rem .6rem; border-radius:999px; margin-left:.4rem;}
+  .badge{display:inline-block; background:#f5e8de; color:var(--accent2); font-size:.75rem; padding:.2rem .6rem; border-radius:999px; margin-left:.4rem;}
 </style>
 </head>
 <body>
@@ -148,7 +148,7 @@
   const NS = 'http://www.w3.org/2000/svg';
   const W=560, H=320, PAD=36;
 
-  let counts = {}; // heads-count -> frequency
+  let counts = {};
   let trials = 0;
 
   const biasInput = document.getElementById('bias');
@@ -191,7 +191,7 @@
 
   function render(){
     svg.innerHTML = '';
-    svg.appendChild(el('line',{x1:PAD,y1:H-PAD,x2:W-PAD,y2:H-PAD,stroke:'#2a3a75','stroke-width':1}));
+    svg.appendChild(el('line',{x1:PAD,y1:H-PAD,x2:W-PAD,y2:H-PAD,stroke:'#d3cbba','stroke-width':1}));
 
     const n = parseInt(nInput.value,10);
     const maxCount = Math.max(1, ...Object.values(counts));
@@ -202,7 +202,7 @@
       const h = (c/maxCount) * (H - 2*PAD);
       const x = PAD + k*barW;
       const y = H - PAD - h;
-      svg.appendChild(el('rect',{x:x+1,y:y,width:Math.max(1,barW-2),height:h,fill:'#4f8cff',opacity:.85,rx:1}));
+      svg.appendChild(el('rect',{x:x+1,y:y,width:Math.max(1,barW-2),height:h,fill:'#7ea8a0',opacity:.85,rx:1}));
     }
 
     const s = stats();
